@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Solarr</title>
 <meta name="theme-color" content="#bfe3ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E☀️%3C/text%3E%3C/svg%3E">
@@ -17,7 +20,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-html,body{height:100%}
+html,body{height:100%;height:100dvh}
 body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bgimg) fixed;background-color:var(--bg);color:var(--text);overflow:hidden;font-size:15px}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -60,8 +63,10 @@ input:focus,textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba
 /* shell */
 #app{height:100%;padding:0}
 .shell{display:flex;height:100%;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);overflow:hidden}
-@media(min-width:761px){#app{padding:18px}.shell{border-radius:24px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.45);max-width:1300px;margin:0 auto}}
-aside{width:350px;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+#app{height:100dvh;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) 0 env(safe-area-inset-left,0)}
+#net{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:95;background:#1c2340;color:#fff;font-size:.8rem;padding:5px 16px;border-radius:0 0 14px 14px}
+@media(min-width:1500px){body{font-size:16px}}
+aside{width:clamp(300px,32vw,420px);flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--line)}
 .sidehead{display:flex;align-items:center;gap:10px;padding:14px 14px 10px}
 .sidehead .who{flex:1;min-width:0;cursor:pointer}
 .sidehead .who b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -256,7 +261,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
       <div class="err" id="authErr"></div>
       <button class="btn block" id="authBtn">Log in</button>
     </form>
-    <p class="note">Demo mode: accounts and messages live in this browser only, so people on other devices can't reach you. Open Solarr in a second tab and sign up with another account to chat between them.</p>
+    <p class="note" id="authNote">Demo mode: accounts and messages live in this browser only. To chat across devices, add your Firebase details at the top of the script (setup steps are in the comment there).</p>
   </div>
 </div>
 
@@ -268,6 +273,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
         <div id="meAv" style="cursor:pointer"></div>
         <div class="who" id="meWho"><b id="meName"></b><span class="muted small" id="meUser"></span></div>
         <button class="icon" id="newChat" title="New chat">＋</button>
+        <button class="icon" id="fsBtn" title="Full screen">⛶</button>
         <button class="icon" id="openSettings" title="Settings">⚙️</button>
       </div>
       <div class="search"><input type="text" id="search" placeholder="Search chats" autocomplete="off"></div>
@@ -392,6 +398,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
     <button class="btn ghost block" id="aiBack" type="button" style="margin-top:12px">← Back to chat</button>
   </div>
 </div>
+<div id="net" hidden>Reconnecting… messages will send when you're back online</div>
 <div id="toast"></div>
 
 <script>
@@ -400,7 +407,10 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 /* ================= CLOUD MODE (optional) =================
    Leave both fields empty to run in Local mode (everything stays in this browser).
    Paste your Firebase details to get REAL accounts and live messaging between devices.
-   See README.md for the 5-minute setup and the database rules. */
+   SETUP (5 min): 1) console.firebase.google.com > create project. 2) Build > Authentication > Sign-in method > enable Email/Password.
+   3) Build > Realtime Database > create, then paste database.rules.json (shipped beside this file) into the Rules tab and Publish.
+   4) Project settings > Your apps > Web app: copy apiKey into apiKey below, and the Realtime Database URL into databaseURL.
+   5) Host this file over https (Firebase Hosting, Netlify, GitHub Pages) and open it on any device. */
 const FIREBASE = Object.assign({
   apiKey: '',        // e.g. 'AIzaSy...'
   databaseURL: '',   // e.g. 'https://your-project-default-rtdb.firebaseio.com'
@@ -489,7 +499,7 @@ function listTime(ts) {
 
 /* ---------- presence / typing ---------- */
 const presence = () => load('solarr_presence', {});
-const isOnline = u => u === BOT || (presence()[u] && Date.now() - presence()[u] < 25000);
+const isOnline = u => u === BOT || (presence()[u] && nowTs() - presence()[u] < 25000);
 function lastSeen(u) {
   if (isOnline(u)) return 'online';
   const t = presence()[u];
@@ -498,7 +508,7 @@ function lastSeen(u) {
   return 'last seen ' + (d === 0 ? 'today at ' + fmtTime(t) : d === 1 ? 'yesterday at ' + fmtTime(t) : new Date(t).toLocaleDateString([], { day: 'numeric', month: 'short' }));
 }
 function beat() { if (!me) return; const p = presence(); p[me] = Date.now(); save('solarr_presence', p); }
-const isTyping = u => { const t = load('solarr_typing', {})[u + '>' + me]; return t && Date.now() - t < 4000; };
+const isTyping = u => { const t = load('solarr_typing', {})[u + '>' + me]; return t && nowTs() - t < 4000; };
 let lastTypingWrite = 0;
 function setTyping(to, on) {
   const t = load('solarr_typing', {}), k = me + '>' + to;
@@ -627,6 +637,7 @@ $('authForm').onsubmit = async e => {
   if (!/^[a-z0-9_]{3,20}$/.test(u)) { err.textContent = 'Username must be 3–20 letters, numbers or underscores.'; return; }
   $('authBtn').disabled = true;
   try {
+    if (CLOUD_ON) { await cloudSubmit(u, p, err); return; }
     const U = users();
     if (mode === 'signup') {
       if (U[u] || ['solarr', 'admin', 'support', 'system'].includes(u)) { err.textContent = 'That username is taken.'; return; }
@@ -649,10 +660,12 @@ $('authForm').onsubmit = async e => {
 function login(u, remember) {
   localStorage.removeItem('solarr_session'); sessionStorage.removeItem('solarr_session');
   (remember ? localStorage : sessionStorage).setItem('solarr_session', u);
+  if (CLOUD_ON && RT) (remember ? localStorage : sessionStorage).setItem('solarr_rt', RT);
   me = u; start();
 }
 function logout() {
   localStorage.removeItem('solarr_session'); sessionStorage.removeItem('solarr_session');
+  if (CLOUD_ON) cloudStop();
   me = current = null; document.title = 'Solarr';
   $('app').hidden = true; $('auth').hidden = false; $('galaxy').hidden = true; $('aiPanel').hidden = true;
   document.querySelectorAll('.modal').forEach(m => m.hidden = true);
@@ -826,7 +839,7 @@ function sendCurrent(image) {
     cancelCompose(); ta.value = ''; autosize(); renderAll(); return;
   }
   if (!text && !image) return;
-  const m = { id: uid(), from: me, to: current, text, ts: Date.now() };
+  const m = { id: uid(), from: me, to: current, text, ts: nowTs() };
   if (image) m.image = image; if (replyTo) m.replyTo = replyTo;
   const M = allMsgs(); M.push(m); if (!save('solarr_msgs', M)) return;
   const U = users(); if (!U[me].contacts.includes(current)) { U[me].contacts.push(current); saveUsers(U); }
@@ -926,7 +939,7 @@ $('addForm').onsubmit = e => {
   const u = $('addUser').value.trim().toLowerCase().replace(/^@/, '');
   if (!u) return;
   if (u === me) { $('addErr').textContent = 'That\'s you! 😄'; return; }
-  if (!users()[u]) { $('addErr').textContent = `No one is signed up as "${u}" on this browser.`; return; }
+  if (!users()[u]) { $('addErr').textContent = `No one is signed up as "${u}"${CLOUD_ON ? '' : ' on this browser'}.`; return; }
   startChatWith(u);
 };
 $('search').oninput = renderList;
@@ -952,6 +965,16 @@ $('setSound').onchange = () => { save('solarr_prefs', { ...prefs(), sound: $('se
 $('pwBtn').onclick = async () => {
   const err = $('pwErr'); err.className = 'err'; err.textContent = '';
   const U = users(), a = U[me], np = $('pwNew').value;
+  if (CLOUD_ON) {
+    try {
+      await AUTH('signInWithPassword', { email: email(me), password: $('pwOld').value, returnSecureToken: true });
+      if (np.length < 6) { err.textContent = 'New password must be at least 6 characters.'; return; }
+      const d = await AUTH('update', { idToken: TOK, password: np, returnSecureToken: true }); TOK = d.idToken; RT = d.refreshToken;
+      [localStorage, sessionStorage].forEach(x => x.getItem('solarr_rt') && x.setItem('solarr_rt', RT));
+      $('pwOld').value = $('pwNew').value = ''; err.className = 'ok'; err.textContent = 'Password updated ✓';
+    } catch { err.textContent = 'Current password is incorrect.'; }
+    return;
+  }
   if (a.hash !== await hashPw($('pwOld').value, a.salt)) { err.textContent = 'Current password is incorrect.'; return; }
   if (np.length < 6) { err.textContent = 'New password must be at least 6 characters.'; return; }
   a.salt = hex(crypto.getRandomValues(new Uint8Array(8))); a.hash = await hashPw(np, a.salt);
@@ -965,6 +988,7 @@ $('exportBtn').onclick = () => {
 $('logoutBtn').onclick = logout;
 $('deleteBtn').onclick = () => {
   if (!confirm('Permanently delete your account and all your messages? This can\'t be undone.')) return;
+  if (CLOUD_ON) { cloudDelete().then(logout, () => toast('Couldn\'t delete the account right now.')); return; }
   const U = users(); delete U[me]; Object.values(U).forEach(x => { x.contacts = (x.contacts || []).filter(c => c !== me); });
   saveUsers(U); save('solarr_msgs', allMsgs().filter(m => m.from !== me && m.to !== me)); logout();
 };
@@ -990,7 +1014,7 @@ function findUser(q) {
   return list.find(x => x.username === q || x.name.toLowerCase() === q) || list.find(x => x.username.startsWith(q) || x.name.toLowerCase().startsWith(q));
 }
 function aiSend(to, text) {
-  const m = { id: uid(), from: me, to, text: text.slice(0, 3000), ts: Date.now() };
+  const m = { id: uid(), from: me, to, text: text.slice(0, 3000), ts: nowTs() };
   const M = allMsgs(); M.push(m); if (!save('solarr_msgs', M)) return;
   const U = users(); if (!U[me].contacts.includes(to)) { U[me].contacts.push(to); saveUsers(U); }
   renderAll(true); if (U[to]?.bot) botRespond(m);
@@ -1083,6 +1107,172 @@ $('aiSave').onclick = () => {
 $('aiRemove').onclick = () => { save('solarr_ai', { key: '', model: $('aiModelIn').value.trim() || 'claude-sonnet-5-5' }); $('aiKeyIn').value = ''; aiMode(); $('aiSetMsg').className = 'ok'; $('aiSetMsg').textContent = 'Key removed.'; };
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.querySelector('.modal:not([hidden])')) $('aiPanel').hidden = true; });
 
+/* ---------- cloud sync: Firebase Auth + Realtime Database (REST + live streams) ---------- */
+const DB = FIREBASE.databaseURL.replace(/\/$/, '');
+let TOK = null, RT = null, UID = null, skew = 0, beatAt = 0, cloudReady = false, streams = [], flushing = false;
+const CT = {}, outbox = load('solarr_outbox', []);
+const nowTs = () => Date.now() + skew;
+const email = u => u + '@solarr.app';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const setNet = ok => { $('net').hidden = ok; };
+const AUTH = (op, body) => fetch(`${FIREBASE.authHost}/v1/accounts:${op}?key=${FIREBASE.apiKey}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  .then(async r => { const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error?.message || 'NETWORK'); return d; });
+const put = (path, v) => fetch(`${DB}/${path}.json?auth=${TOK}`, { method: 'PUT', body: JSON.stringify(v) }).then(r => { if (!r.ok) throw new Error('PERMISSION_DENIED: check the database rules'); });
+async function cloudAuth(signup, u, p) {
+  const d = await AUTH(signup ? 'signUp' : 'signInWithPassword', { email: email(u), password: p, returnSecureToken: true });
+  TOK = d.idToken; RT = d.refreshToken; UID = d.localId;
+}
+async function refresh() {
+  const r = await fetch(`${FIREBASE.tokenHost}/v1/token?key=${FIREBASE.apiKey}`, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(RT) });
+  const d = await r.json(); if (!r.ok) throw new Error('SESSION');
+  TOK = d.id_token; RT = d.refresh_token; UID = d.user_id;
+  [localStorage, sessionStorage].forEach(x => x.getItem('solarr_rt') && x.setItem('solarr_rt', RT));
+}
+function setPath(path, v) {
+  const s = path.split('/').filter(Boolean); let o = CT;
+  for (let i = 0; i < s.length - 1; i++) { if (typeof o[s[i]] !== 'object' || o[s[i]] === null) o[s[i]] = {}; o = o[s[i]]; }
+  if (v === null || v === undefined) delete o[s[s.length - 1]]; else o[s[s.length - 1]] = v;
+}
+const packMsg = m => { const c = { ...m }, r = {}; for (const [e, a] of Object.entries(m.reactions || {})) { r[e] = {}; a.forEach(x => r[e][x] = true); } if (Object.keys(r).length) c.reactions = r; else delete c.reactions; return c; };
+const unpackMsg = m => { const c = { ...m }; if (c.reactions) c.reactions = Object.fromEntries(Object.entries(c.reactions).map(([e, v]) => [e, Object.keys(v || {})]).filter(([, a]) => a.length)); return c; };
+function rebuild() {
+  const U = {};
+  for (const [n, pr] of Object.entries(CT.users || {})) U[n] = { username: n, ...pr, contacts: [], cleared: {} };
+  const pv = CT.private?.[me] || {};
+  if (U[me]) { U[me].contacts = Object.keys(pv.contacts || {}); U[me].cleared = pv.cleared || {}; }
+  const bot = users()[BOT]; if (bot) U[BOT] = bot;
+  MEM.solarr_users = JSON.stringify(U);
+  let bm = []; try { bm = JSON.parse(localStorage.getItem('solarr_bot_' + me) || '[]'); } catch {}
+  MEM.solarr_msgs = JSON.stringify([...Object.entries(CT.inbox?.[me] || {}).map(([id, m]) => unpackMsg({ ...m, id })), ...bm]);
+  MEM.solarr_presence = JSON.stringify(CT.presence || {});
+  const old = load('solarr_typing', {}), TY = {};
+  for (const k in old) if (k.startsWith(BOT + '>')) TY[k] = old[k];
+  for (const [f, t] of Object.entries(CT.typing?.[me] || {})) TY[f + '>' + me] = t;
+  MEM.solarr_typing = JSON.stringify(TY);
+}
+function onCloud() {
+  const ov = MEM.solarr_msgs; rebuild();
+  if (!cloudReady || !me) return;
+  if (users()[me]) renderMe();
+  handleDataChange('solarr_msgs', ov, MEM.solarr_msgs);
+}
+function openStreams() {
+  streams.forEach(s => s.close()); streams = [];
+  const subs = ['users', 'presence', 'inbox/' + me, 'private/' + me, 'typing/' + me];
+  return new Promise(res => {
+    let n = 0; const t = setTimeout(res, 8000);
+    subs.forEach(base => {
+      let first = true;
+      const es = new EventSource(`${DB}/${base}.json?auth=${TOK}`);
+      const ev = e => {
+        let d; try { d = JSON.parse(e.data); } catch { return; }
+        if (e.type === 'put') setPath(base + d.path, d.data);
+        else for (const [k, v] of Object.entries(d.data || {})) setPath(base + d.path + '/' + k, v);
+        if (base === 'presence' && Date.now() - beatAt < 4000 && CT.presence?.[me]) skew = CT.presence[me] - Date.now();
+        if (first) { first = false; if (++n === subs.length) { clearTimeout(t); res(); } }
+        onCloud();
+      };
+      es.addEventListener('put', ev); es.addEventListener('patch', ev);
+      es.addEventListener('auth_revoked', () => refresh().then(openStreams).catch(() => {}));
+      es.onopen = () => { setNet(true); flush(); };
+      es.onerror = () => { setNet(false); if (es.readyState === 2) setTimeout(() => RT && refresh().then(openStreams).catch(() => {}), 4000); };
+      streams.push(es);
+    });
+  }).then(() => { cloudReady = true; flush(); });
+}
+function cw(u) { outbox.push(u); save('solarr_outbox', outbox); flush(); }
+async function flush() {
+  if (flushing || !TOK) return; flushing = true;
+  while (outbox.length && TOK) {
+    try {
+      const r = await fetch(`${DB}/.json?auth=${TOK}`, { method: 'PATCH', body: JSON.stringify(outbox[0]) });
+      if (r.status === 401) { await refresh(); await sleep(1500); continue; }
+      if (r.status >= 500) throw 0;
+      outbox.shift(); save('solarr_outbox', outbox); setNet(true);
+    } catch { setNet(false); await sleep(4000); }
+  }
+  flushing = false;
+}
+function cloudPush(k, o, n) {
+  if (!TOK || !me) return;
+  const u = {};
+  if (k === 'solarr_msgs') {
+    const nb = x => x.filter(m => m.from !== BOT && m.to !== BOT);
+    const om = new Map(nb(o).map(m => [m.id, m])), nm = new Map(nb(n).map(m => [m.id, m]));
+    localStorage.setItem('solarr_bot_' + me, JSON.stringify(n.filter(m => m.from === BOT || m.to === BOT)));
+    om.forEach((m, id) => { if (!nm.has(id)) [m.from, m.to].forEach(x => u[`inbox/${x}/${id}`] = null); });
+    nm.forEach((m, id) => {
+      const c = om.get(id), P = [m.from, m.to];
+      if (!c) { const f = packMsg(m); P.forEach(x => u[`inbox/${x}/${id}`] = f); return; }
+      const a = packMsg(c), b = packMsg(m);
+      for (const f of new Set([...Object.keys(a), ...Object.keys(b)])) {
+        if (f === 'reactions') {
+          const ra = a.reactions || {}, rb = b.reactions || {};
+          for (const e of new Set([...Object.keys(ra), ...Object.keys(rb)])) for (const v of new Set([...Object.keys(ra[e] || {}), ...Object.keys(rb[e] || {})])) {
+            const was = !!(ra[e] || {})[v], is = !!(rb[e] || {})[v];
+            if (was !== is) P.forEach(x => u[`inbox/${x}/${id}/reactions/${e}/${v}`] = is ? true : null);
+          }
+        } else if (JSON.stringify(a[f]) !== JSON.stringify(b[f])) P.forEach(x => u[`inbox/${x}/${id}/${f}`] = b[f] ?? null);
+      }
+    });
+  } else if (k === 'solarr_users') {
+    const a = o[me] || {}, b = n[me]; if (!b) return;
+    ['name', 'bio', 'color'].forEach(f => { if (a[f] !== b[f]) u[`users/${me}/${f}`] = b[f]; });
+    if (JSON.stringify([a.contacts, a.cleared]) !== JSON.stringify([b.contacts, b.cleared])) u[`private/${me}`] = { contacts: Object.fromEntries((b.contacts || []).map(c => [c, 1])), cleared: b.cleared || {} };
+  } else if (k === 'solarr_presence') { beatAt = Date.now(); u[`presence/${me}`] = { '.sv': 'timestamp' }; }
+  else if (k === 'solarr_typing') {
+    for (const [key, v] of Object.entries(n)) { const [f, t] = key.split('>'); if (f === me && t !== BOT && o[key] !== v) u[`typing/${t}/${me}`] = { '.sv': 'timestamp' }; }
+    for (const key of Object.keys(o)) { const [f, t] = key.split('>'); if (f === me && t !== BOT && !(key in n)) u[`typing/${t}/${me}`] = null; }
+  }
+  const ks = Object.keys(u); if (!ks.length) return;
+  ks.forEach(x => setPath(x, u[x] && u[x]['.sv'] ? nowTs() : u[x]));
+  cw(u);
+}
+async function cloudSubmit(u, p, err) {
+  const E = { EMAIL_EXISTS: 'That username is taken.', SHORT: 'Password must be at least 6 characters.', NOPROFILE: 'Account not found.' };
+  try {
+    const signup = mode === 'signup';
+    if (signup && ['solarr', 'admin', 'support', 'system'].includes(u)) throw new Error('EMAIL_EXISTS');
+    if (signup && p.length < 6) throw new Error('SHORT');
+    await cloudAuth(signup, u, p); me = u;
+    if (signup) {
+      const name = ($('dname').value.trim() || u).slice(0, 30), now = Date.now();
+      await put('users/' + u, { username: u, name, bio: 'Hey there! I\'m using Solarr.', color: Math.floor(Math.random() * COLORS.length), created: now, uid: UID });
+      await put('uids/' + UID, u); await put('private/' + u, { contacts: { [BOT]: 1 } });
+      localStorage.setItem('solarr_bot_' + u, JSON.stringify([
+        { id: uid(), from: BOT, to: u, ts: now - 2000, text: `Welcome to Solarr, ${name}! ☀️` },
+        { id: uid(), from: BOT, to: u, ts: now - 1000, text: 'Tap ＋ to add friends by username. Say "help" to see what I can do!' }]));
+    }
+    await openStreams(); rebuild();
+    if (!users()[u]) throw new Error('NOPROFILE');
+    $('pass').value = ''; login(u, $('remember').checked);
+  } catch (e) {
+    cloudStop(); me = null;
+    err.textContent = E[e.message] || (/INVALID|NOT_FOUND|PASSWORD/.test(e.message) ? 'Incorrect username or password.' : 'Couldn\'t connect: ' + e.message);
+  }
+}
+function cloudStop() {
+  streams.forEach(s => s.close()); streams = []; TOK = RT = UID = null; cloudReady = false;
+  Object.keys(CT).forEach(k => delete CT[k]); localStorage.removeItem('solarr_rt'); sessionStorage.removeItem('solarr_rt');
+}
+async function cloudDelete() {
+  const u = {}; allMsgs().filter(m => m.from !== BOT && m.to !== BOT).forEach(m => [m.from, m.to].forEach(x => u[`inbox/${x}/${m.id}`] = null));
+  Object.assign(u, { ['users/' + me]: null, ['private/' + me]: null, ['presence/' + me]: null, ['uids/' + UID]: null });
+  const r = await fetch(`${DB}/.json?auth=${TOK}`, { method: 'PATCH', body: JSON.stringify(u) }); if (!r.ok) throw new Error('x');
+  await AUTH('delete', { idToken: TOK });
+}
+window.addEventListener('online', flush); window.addEventListener('offline', () => setNet(false));
+
+/* ---------- full screen ---------- */
+(() => {
+  const de = document.documentElement, req = de.requestFullscreen || de.webkitRequestFullscreen, ex = document.exitFullscreen || document.webkitExitFullscreen;
+  if (!req) { $('fsBtn').hidden = true; return; }
+  const isFs = () => document.fullscreenElement || document.webkitFullscreenElement;
+  $('fsBtn').onclick = () => isFs() ? ex.call(document) : req.call(de);
+  const sync = () => { $('fsBtn').title = isFs() ? 'Exit full screen' : 'Full screen'; $('fsBtn').textContent = isFs() ? '🗗' : '⛶'; };
+  document.addEventListener('fullscreenchange', sync); document.addEventListener('webkitfullscreenchange', sync);
+})();
+
 /* ---------- boot ---------- */
 function renderMe() {
   const usr = users()[me];
@@ -1097,6 +1287,7 @@ function start() {
   beat(); renderMe(); renderAll();
   if (!timersOn) {
     timersOn = true;
+    if (CLOUD_ON) setInterval(() => refresh().then(openStreams).catch(() => {}), 45 * 60e3);
     setInterval(() => { if (me) beat(); }, 10000);
     setInterval(() => { if (me) { renderHead(); renderMe(); } }, 2000);
   }
@@ -1139,7 +1330,14 @@ document.addEventListener('keydown', e => {
 applyTheme(load('solarr_theme', DEFAULT_THEME));
 ensureBot();
 const saved = localStorage.getItem('solarr_session') || sessionStorage.getItem('solarr_session');
-if (saved && users()[saved]) { me = saved; start(); } else { $('auth').hidden = false; }
+if (CLOUD_ON) {
+  $('authNote').textContent = 'Accounts and messages sync live across all your devices.';
+  const rt = localStorage.getItem('solarr_rt') || sessionStorage.getItem('solarr_rt');
+  if (saved && rt) {
+    RT = rt; refresh().then(() => { me = saved; return openStreams(); }).then(() => { rebuild(); if (!users()[saved]) throw 0; start(); })
+      .catch(() => { cloudStop(); me = null; $('auth').hidden = false; });
+  } else $('auth').hidden = false;
+} else if (saved && users()[saved]) { me = saved; start(); } else { $('auth').hidden = false; }
 })();
 </script>
 </body>
