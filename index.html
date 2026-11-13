@@ -226,6 +226,12 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
   .back{display:grid}
   .bubble{max-width:84%}
 }
+#call{position:fixed;inset:0;z-index:100;background:#0b1026;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#lv{position:absolute;right:16px;top:calc(16px + env(safe-area-inset-top));width:110px;border-radius:14px;z-index:2}
+#callTxt{position:relative;z-index:2;font-size:1.3rem;text-shadow:0 2px 8px #000}
+.cbtns{position:absolute;bottom:calc(30px + env(safe-area-inset-bottom));display:flex;gap:12px;z-index:2}
+.gname{display:block;font-size:.74rem;color:var(--accent2);font-weight:700}
 </style>
 </head>
 <body>
@@ -273,6 +279,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
         <div id="meAv" style="cursor:pointer"></div>
         <div class="who" id="meWho"><b id="meName"></b><span class="muted small" id="meUser"></span></div>
         <button class="icon" id="newChat" title="New chat">＋</button>
+        <button class="icon" id="stBtn" title="Status">◉</button>
         <button class="icon" id="fsBtn" title="Full screen">⛶</button>
         <button class="icon" id="openSettings" title="Settings">⚙️</button>
       </div>
@@ -292,6 +299,8 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
           <button class="icon back" id="back" title="Back">←</button>
           <div id="headAv" style="cursor:pointer"></div>
           <div class="who" id="headWho"><b id="headName"></b><span class="small muted status" id="headStatus"></span></div>
+          <button class="icon" id="callA" title="Voice call" hidden>📞</button>
+          <button class="icon" id="callV" title="Video call" hidden>🎥</button>
           <button class="icon" id="menuBtn" title="More">⋯</button>
         </div>
         <div id="msgs"></div>
@@ -303,15 +312,19 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
         <form class="composer" id="composer">
           <button class="icon" type="button" id="emojiBtn" title="Emoji">😊</button>
           <button class="icon" type="button" id="attachBtn" title="Send a photo">📎</button>
-          <input type="file" id="file" accept="image/*" hidden>
+          <input type="file" id="file" hidden>
+          <button class="icon" type="button" id="micBtn" title="Voice message">🎤</button>
           <textarea id="text" rows="1" placeholder="Message" maxlength="3000"></textarea>
           <button class="send" title="Send" aria-label="Send">➤</button>
         </form>
         <div class="pop" id="emoji" hidden></div>
         <div class="pop" id="chatMenu" hidden>
           <button id="mProfile">👤 View profile</button>
+          <button id="mPin">📌 Pin / unpin chat</button>
+          <button id="mStar">⭐ Starred messages</button>
           <button id="mClear" class="d">🧹 Clear chat</button>
           <button id="mRemove" class="d">🚫 Remove contact</button>
+          <button id="mLeave" class="d" hidden>🚪 Leave group</button>
         </div>
       </section>
     </main>
@@ -323,8 +336,14 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
   <div class="head"><h3>New chat</h3><button class="icon" data-close>✕</button></div>
   <p class="muted small" style="margin-bottom:12px">Enter a username or pick someone below.</p>
   <form id="addForm"><input type="text" id="addUser" placeholder="@username" maxlength="21" autocomplete="off" autocapitalize="none"><div class="err" id="addErr"></div><button class="btn block">Start chat</button></form>
+  <button class="btn ghost block" id="gBtn" type="button" style="margin-top:10px">👥 New group</button>
   <div id="suggest"></div>
 </div></div>
+
+<div class="modal" id="statusModal" hidden><div class="sheet"><div class="head"><h3>Status</h3><button class="icon" data-close>✕</button></div><textarea id="stText" rows="2" maxlength="300" placeholder="Share a status (visible for 24 hours)"></textarea><div class="row2" style="margin:8px 0 14px"><button class="btn" id="stPost">Post</button><button class="btn ghost" id="stDel">Delete mine</button></div><div id="stBody"></div></div></div>
+<div class="modal" id="fwdModal" hidden><div class="sheet"><div class="head"><h3>Forward to…</h3><button class="icon" data-close>✕</button></div><div id="fwdList"></div></div></div>
+<div class="modal" id="starModal" hidden><div class="sheet"><div class="head"><h3>Starred</h3><button class="icon" data-close>✕</button></div><div id="starBody"></div></div></div>
+<div class="modal" id="groupModal" hidden><div class="sheet"><div class="head"><h3>New group</h3><button class="icon" data-close>✕</button></div><input type="text" id="gName" placeholder="Group name" maxlength="40" style="margin-bottom:10px"><div id="gList" style="max-height:260px;overflow-y:auto"></div><button class="btn block" id="gCreate" style="margin-top:12px">Create group</button></div></div>
 
 <div class="modal" id="profileModal" hidden><div class="sheet">
   <div class="head"><span></span><button class="icon" data-close>✕</button></div>
@@ -398,6 +417,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
     <button class="btn ghost block" id="aiBack" type="button" style="margin-top:12px">← Back to chat</button>
   </div>
 </div>
+<div id="call" hidden><video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted hidden></video><div id="callTxt"></div><div class="cbtns"><button id="callAcc" class="btn" hidden>✅ Answer</button><button id="callMute" class="btn ghost">🎤</button><button id="callEnd" class="btn danger">📞 End</button></div></div>
 <div id="net" hidden>Reconnecting… messages will send when you're back online</div>
 <div id="toast"></div>
 
@@ -674,34 +694,36 @@ function logout() {
 /* ---------- data helpers ---------- */
 function thread(o) {
   const cl = (users()[me].cleared || {})[o] || 0;
-  return allMsgs().filter(m => ((m.from === me && m.to === o) || (m.from === o && m.to === me)) && m.ts > cl).sort((a, b) => a.ts - b.ts);
+  const hid = users()[me].hidden || {}, g = isGroup(o);
+  return allMsgs().filter(m => (g ? m.to === o : (m.from === me && m.to === o) || (m.from === o && m.to === me)) && m.ts > cl && !hid[m.id]).sort((a, b) => a.ts - b.ts);
 }
-function previewOf(m) { return m.deleted ? '🚫 Message deleted' : m.image ? '📷 ' + (m.text || 'Photo') : m.text; }
+function previewOf(m) { return m.deleted ? '🚫 Message deleted' : m.image ? '📷 ' + (m.text || 'Photo') : m.audio ? '🎤 Voice message' : m.file ? '📎 ' + m.file.name : m.text; }
 function markRead() {
   if (!current || document.hidden) return;
   const M = allMsgs(); let ch = false; const now = Date.now();
-  M.forEach(m => { if (m.from === current && m.to === me && !m.readAt) { m.readAt = now; ch = true; } });
+  M.forEach(m => { if ((isGroup(current) ? m.to === current && m.from !== me : m.from === current && m.to === me) && !m.readAt) { m.readAt = now; ch = true; } });
   if (ch) save('solarr_msgs', M);
 }
-function unreadTotal() { return allMsgs().filter(m => m.to === me && !m.readAt && !m.deleted).length; }
+function unreadTotal() { return allMsgs().filter(m => forMe(m) && !m.readAt && !m.deleted).length; }
 function updateTitle() { const n = unreadTotal(); document.title = (n ? `(${n}) ` : '') + 'Solarr'; }
 
 /* ---------- list ---------- */
 function renderList() {
   if (!me) return;
   const U = users(), M = allMsgs(), q = $('search').value.trim().toLowerCase(), cl = U[me].cleared || {};
-  const info = {}, set = new Set(U[me].contacts || []);
+  const info = {}, set = new Set(U[me].contacts || []); Object.values(U).forEach(x => x.group && set.add(x.username));
   M.forEach(m => {
-    const o = m.from === me ? m.to : m.to === me ? m.from : null;
+    const o = isGroup(m.to) ? m.to : m.from === me ? m.to : m.to === me ? m.from : null;
     if (!o || !U[o] || m.ts <= (cl[o] || 0)) return;
     set.add(o);
     const i = info[o] || (info[o] = { last: null, unread: 0 });
     if (!i.last || m.ts >= i.last.ts) i.last = m;
-    if (m.to === me && !m.readAt && !m.deleted) i.unread++;
+    if (forMe(m) && !m.readAt && !m.deleted) i.unread++;
   });
   let rows = [...set].filter(u => U[u] && u !== me).map(u => ({ u, usr: U[u], i: info[u] || { last: null, unread: 0 } }));
   if (q) rows = rows.filter(r => r.usr.name.toLowerCase().includes(q) || r.u.includes(q));
-  rows.sort((a, b) => (b.i.last?.ts || 0) - (a.i.last?.ts || 0) || a.usr.name.localeCompare(b.usr.name));
+  const pn = x => (U[me].pinned || {})[x] ? 1 : 0;
+  rows.sort((a, b) => pn(b.u) - pn(a.u) || (b.i.last?.ts || 0) - (a.i.last?.ts || 0) || a.usr.name.localeCompare(b.usr.name));
   const list = $('list'); list.textContent = '';
   if (!rows.length) {
     list.append(h('div', { class: 'listempty', text: q ? 'No chats match your search.' : 'No chats yet. Tap ＋ to find someone by username.' }));
@@ -716,7 +738,7 @@ function renderList() {
     list.append(h('div', { class: 'item' + (u === current ? ' on' : ''), onclick: () => openChat(u) },
       avatar(usr, 46, true),
       h('div', { class: 't' },
-        h('div', { class: 'top' }, h('div', { class: 'n', text: usr.name }), l ? h('div', { class: 'tm', text: listTime(l.ts) }) : null),
+        h('div', { class: 'top' }, h('div', { class: 'n', text: (U[me].pinned?.[u] ? '📌 ' : '') + usr.name }), l ? h('div', { class: 'tm', text: listTime(l.ts) }) : null),
         h('div', { class: 'bot' }, prev, i.unread ? h('div', { class: 'badge', text: i.unread > 99 ? '99+' : i.unread }) : null))));
   });
 }
@@ -728,10 +750,11 @@ function renderHead() {
   $('headAv').textContent = ''; $('headAv').append(avatar(usr, 42, true));
   $('headName').textContent = usr.name;
   const typ = isTyping(current), st = $('headStatus');
-  st.textContent = typ ? 'typing…' : lastSeen(current);
+  st.textContent = typ ? 'typing…' : usr.group ? Object.keys(usr.members).length + ' members' : lastSeen(current);
+  $('callA').hidden = $('callV').hidden = !CLOUD_ON || !!usr.group || !!usr.bot; $('mLeave').hidden = !usr.group;
   st.classList.toggle('on', typ || isOnline(current));
   $('typing').hidden = !typ; $('typingTxt').textContent = typ ? usr.name.split(' ')[0] + ' is typing' : '';
-  $('mRemove').hidden = !(users()[me].contacts || []).includes(current) || usr.bot;
+  $('mRemove').hidden = !(users()[me].contacts || []).includes(current) || usr.bot || usr.group;
 }
 
 /* ---------- thread ---------- */
@@ -774,13 +797,17 @@ function msgNode(m, cont, more, M) {
     return row;
   }
   const b = h('div', { class: 'bubble', onclick: e => { if (e.target.closest('a')) return; selectedId = selectedId === m.id ? null : m.id; renderThread(); } });
+  if (!mine && isGroup(m.to) && !cont) b.append(h('b', { class: 'gname', text: U[m.from]?.name || m.from }));
+  if (m.fwd) b.append(h('i', { class: 'small muted', text: '↪ Forwarded', style: 'display:block' }));
   if (m.replyTo) {
     const o = M.find(x => x.id === m.replyTo);
     b.append(h('div', { class: 'quote' }, h('b', { text: o ? (o.from === me ? 'You' : U[o.from]?.name || o.from) : 'Message' }), h('span', { text: o ? previewOf(o) : 'Original message unavailable' })));
   }
   if (m.image && /^data:image\//.test(m.image)) b.append(h('img', { class: 'rimg', src: m.image, alt: 'Photo', onclick: e => { e.stopPropagation(); $('lightbox').firstElementChild.src = m.image; openModal('lightbox'); } }));
+  if (m.audio && /^data:audio\//.test(m.audio)) b.append(h('audio', { controls: true, src: m.audio, style: 'max-width:230px;display:block' }));
+  if (m.file && /^data:/.test(m.file.data || '')) b.append(h('a', { href: m.file.data, download: m.file.name, text: '📎 ' + m.file.name, style: 'display:block;margin:2px 0' }));
   if (m.text) { const t = h('span'); linkify(t, m.text); b.append(t); }
-  const meta = h('div', { class: 'meta' }, m.edited ? h('span', { text: 'edited' }) : null, h('span', { text: fmtTime(m.ts) }));
+  const meta = h('div', { class: 'meta' }, starred(m.id) ? h('span', { text: '⭐' }) : null, m.edited ? h('span', { text: 'edited' }) : null, h('span', { text: fmtTime(m.ts) }));
   if (mine) meta.append(h('span', { class: m.readAt ? 'rd' : '', text: m.readAt ? '✓✓' : '✓' }));
   b.append(meta);
   row.append(b);
@@ -792,10 +819,11 @@ function msgNode(m, cont, more, M) {
 function toolsNode(m) {
   const mine = m.from === me, my = Object.entries(m.reactions || {}).find(([, a]) => a.includes(me))?.[0];
   const act = (label, fn, cls = '') => h('button', { type: 'button', class: 'act ' + cls, text: label, onclick: e => { e.stopPropagation(); selectedId = null; fn(); renderThread(); } });
-  const acts = h('div', { class: 'acts' }, act('↩ Reply', () => startReply(m)));
+  const acts = h('div', { class: 'acts' }, act('↩ Reply', () => startReply(m)), act('↪ Forward', () => openFwd(m)), act(starred(m.id) ? '☆ Unstar' : '⭐ Star', () => toggleStar(m.id)));
   if (m.text) acts.append(act('⧉ Copy', () => { (navigator.clipboard ? navigator.clipboard.writeText(m.text) : Promise.reject()).then(() => toast('Copied'), () => toast('Couldn\'t copy')); }));
   if (mine && m.text && !m.image) acts.append(act('✎ Edit', () => startEdit(m)));
-  if (mine) acts.append(act('🗑 Delete', () => { if (confirm('Delete this message for everyone?')) removeMsg(m.id); }, 'del'));
+  acts.append(act('🗑 For me', () => hideMsg(m.id), 'del'));
+  if (mine) acts.append(act('🗑 For everyone', () => { if (confirm('Delete this message for everyone?')) removeMsg(m.id); }, 'del'));
   return h('div', { class: 'tools' },
     h('div', { class: 'quick' }, QUICK.map(em => h('button', { type: 'button', class: em === my ? 'mine' : '', text: em, onclick: e => { e.stopPropagation(); selectedId = null; react(m.id, em); } }))),
     acts);
@@ -809,7 +837,7 @@ function react(id, em) {
 }
 function removeMsg(id) {
   const M = allMsgs(), m = M.find(x => x.id === id); if (!m || m.from !== me) return;
-  m.deleted = true; delete m.text; delete m.image; delete m.reactions; delete m.replyTo;
+  m.deleted = true; delete m.text; delete m.image; delete m.audio; delete m.file; delete m.reactions; delete m.replyTo;
   save('solarr_msgs', M); renderAll();
 }
 
@@ -829,7 +857,7 @@ $('text').addEventListener('keydown', e => {
   if (e.key === 'Escape') cancelCompose();
 });
 $('composer').onsubmit = e => { e.preventDefault(); sendCurrent(); };
-function sendCurrent(image) {
+function sendCurrent(image, extra) {
   if (!current) return;
   const ta = $('text'), text = ta.value.trim();
   if (editing) {
@@ -838,9 +866,9 @@ function sendCurrent(image) {
     if (m && m.from === me && m.text !== text) { m.text = text; m.edited = true; save('solarr_msgs', M); }
     cancelCompose(); ta.value = ''; autosize(); renderAll(); return;
   }
-  if (!text && !image) return;
+  if (!text && !image && !extra) return;
   const m = { id: uid(), from: me, to: current, text, ts: nowTs() };
-  if (image) m.image = image; if (replyTo) m.replyTo = replyTo;
+  if (image) m.image = image; if (extra) Object.assign(m, extra); if (replyTo) m.replyTo = replyTo;
   const M = allMsgs(); M.push(m); if (!save('solarr_msgs', M)) return;
   const U = users(); if (!U[me].contacts.includes(current)) { U[me].contacts.push(current); saveUsers(U); }
   ta.value = ''; drafts[current] = ''; autosize(); cancelCompose(); setTyping(current, false); lastTypingWrite = 0;
@@ -850,7 +878,10 @@ function sendCurrent(image) {
 $('attachBtn').onclick = () => $('file').click();
 $('file').onchange = () => {
   const f = $('file').files[0]; $('file').value = ''; if (!f) return;
-  if (!/^image\//.test(f.type)) { toast('Please choose an image.'); return; }
+  if (!/^image\//.test(f.type)) {
+    if (f.size > 700000) { toast('Files are limited to 700 KB.'); return; }
+    const r2 = new FileReader(); r2.onload = () => sendCurrent(null, { file: { name: f.name.slice(0, 80), data: r2.result } }); r2.readAsDataURL(f); return;
+  }
   const rd = new FileReader();
   rd.onload = () => {
     const img = new Image();
@@ -881,7 +912,7 @@ document.addEventListener('click', e => {
 function openChat(u) {
   if (current) drafts[current] = $('text').value;
   current = u; replyTo = editing = selectedId = null; $('replybar').hidden = true;
-  const first = thread(u).find(m => m.from === u && !m.readAt && !m.deleted);
+  const first = thread(u).find(m => (isGroup(u) ? m.from !== me : m.from === u) && !m.readAt && !m.deleted);
   unreadMarker = first ? first.id : null;
   $('emptyState').hidden = true; $('thread').hidden = false; $('shell').classList.add('chatopen');
   $('text').value = drafts[u] || ''; autosize();
@@ -910,9 +941,10 @@ function showProfile(u) {
   if (u === me) { openSettings(); return; }
   const usr = users()[u]; if (!usr) return;
   const b = $('profBody'); b.textContent = '';
-  b.append(avatar(usr, 96, true), h('h3', { text: usr.name }), h('div', { class: 'muted', text: '@' + usr.username }),
+  b.append(avatar(usr, 96, true), h('h3', { text: usr.name }), h('div', { class: 'muted', text: usr.group ? Object.keys(usr.members).map(x => users()[x]?.name || x).join(', ') : '@' + usr.username }),
     h('p', { class: 'bio', text: usr.bio || '' }),
-    h('div', { class: 'kv' }, h('div', { text: lastSeen(u) }), h('div', { text: 'Joined ' + new Date(usr.created).toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' }) })));
+    h('div', { class: 'kv' }, h('div', { text: usr.group ? '' : lastSeen(u) }), h('div', { text: 'Joined ' + new Date(usr.created).toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' }) })));
+  if (usr.group) b.append(groupAdmin(usr));
   openModal('profileModal');
 }
 
@@ -921,7 +953,7 @@ function openAdd() { $('addUser').value = ''; $('addErr').textContent = ''; rend
 function renderSuggest() {
   const U = users(), q = $('addUser').value.trim().toLowerCase().replace(/^@/, ''), mine = new Set(U[me].contacts || []), box = $('suggest');
   box.textContent = '';
-  const list = Object.values(U).filter(x => x.username !== me && (!q || x.username.includes(q) || x.name.toLowerCase().includes(q)));
+  const list = Object.values(U).filter(x => x.username !== me && !x.group && (!q || x.username.includes(q) || x.name.toLowerCase().includes(q)));
   if (!list.length) { box.append(h('div', { class: 'listempty', text: 'Nobody found.' })); return; }
   list.slice(0, 40).forEach(x => box.append(h('div', { class: 'item', onclick: () => startChatWith(x.username) },
     avatar(x, 40, true), h('div', { class: 't' }, h('div', { class: 'n', text: x.name }), h('div', { class: 'p', text: '@' + x.username + (mine.has(x.username) ? ' · in your chats' : '') })))));
@@ -1139,7 +1171,8 @@ function rebuild() {
   const U = {};
   for (const [n, pr] of Object.entries(CT.users || {})) U[n] = { username: n, ...pr, contacts: [], cleared: {} };
   const pv = CT.private?.[me] || {};
-  if (U[me]) { U[me].contacts = Object.keys(pv.contacts || {}); U[me].cleared = pv.cleared || {}; }
+  if (U[me]) { U[me].contacts = Object.keys(pv.contacts || {}); U[me].cleared = pv.cleared || {}; U[me].hidden = pv.hidden || {}; U[me].starred = pv.starred || {}; U[me].pinned = pv.pinned || {}; }
+  for (const [g, v] of Object.entries(CT.gmeta?.[me] || {})) U[g] = { username: g, name: v.name, bio: '', color: v.color || 0, group: true, members: v.members || {}, admin: v.admin, created: v.created, contacts: [], cleared: {} };
   const bot = users()[BOT]; if (bot) U[BOT] = bot;
   MEM.solarr_users = JSON.stringify(U);
   let bm = []; try { bm = JSON.parse(localStorage.getItem('solarr_bot_' + me) || '[]'); } catch {}
@@ -1158,7 +1191,7 @@ function onCloud() {
 }
 function openStreams() {
   streams.forEach(s => s.close()); streams = [];
-  const subs = ['users', 'presence', 'inbox/' + me, 'private/' + me, 'typing/' + me];
+  const subs = ['users', 'presence', 'inbox/' + me, 'private/' + me, 'typing/' + me, 'gmeta/' + me, 'calls/' + me, 'status'];
   return new Promise(res => {
     let n = 0; const t = setTimeout(res, 8000);
     subs.forEach(base => {
@@ -1170,7 +1203,7 @@ function openStreams() {
         else for (const [k, v] of Object.entries(d.data || {})) setPath(base + d.path + '/' + k, v);
         if (base === 'presence' && Date.now() - beatAt < 4000 && CT.presence?.[me]) skew = CT.presence[me] - Date.now();
         if (first) { first = false; if (++n === subs.length) { clearTimeout(t); res(); } }
-        onCloud();
+        onCloud(); if (base[0] === 'c') onCall();
       };
       es.addEventListener('put', ev); es.addEventListener('patch', ev);
       es.addEventListener('auth_revoked', () => refresh().then(openStreams).catch(() => {}));
@@ -1202,7 +1235,7 @@ function cloudPush(k, o, n) {
     localStorage.setItem('solarr_bot_' + me, JSON.stringify(n.filter(m => m.from === BOT || m.to === BOT)));
     om.forEach((m, id) => { if (!nm.has(id)) [m.from, m.to].forEach(x => u[`inbox/${x}/${id}`] = null); });
     nm.forEach((m, id) => {
-      const c = om.get(id), P = [m.from, m.to];
+      const c = om.get(id), gm = isGroup(m.to) ? Object.keys(users()[m.to].members) : null, P = gm || [m.from, m.to];
       if (!c) { const f = packMsg(m); P.forEach(x => u[`inbox/${x}/${id}`] = f); return; }
       const a = packMsg(c), b = packMsg(m);
       for (const f of new Set([...Object.keys(a), ...Object.keys(b)])) {
@@ -1212,17 +1245,17 @@ function cloudPush(k, o, n) {
             const was = !!(ra[e] || {})[v], is = !!(rb[e] || {})[v];
             if (was !== is) P.forEach(x => u[`inbox/${x}/${id}/reactions/${e}/${v}`] = is ? true : null);
           }
-        } else if (JSON.stringify(a[f]) !== JSON.stringify(b[f])) P.forEach(x => u[`inbox/${x}/${id}/${f}`] = b[f] ?? null);
+        } else if (JSON.stringify(a[f]) !== JSON.stringify(b[f])) (gm && f === 'readAt' ? [me] : P).forEach(x => u[`inbox/${x}/${id}/${f}`] = b[f] ?? null);
       }
     });
   } else if (k === 'solarr_users') {
     const a = o[me] || {}, b = n[me]; if (!b) return;
     ['name', 'bio', 'color'].forEach(f => { if (a[f] !== b[f]) u[`users/${me}/${f}`] = b[f]; });
-    if (JSON.stringify([a.contacts, a.cleared]) !== JSON.stringify([b.contacts, b.cleared])) u[`private/${me}`] = { contacts: Object.fromEntries((b.contacts || []).map(c => [c, 1])), cleared: b.cleared || {} };
+    if (JSON.stringify([a.contacts, a.cleared, a.hidden, a.starred, a.pinned]) !== JSON.stringify([b.contacts, b.cleared, b.hidden, b.starred, b.pinned])) u[`private/${me}`] = { contacts: Object.fromEntries((b.contacts || []).map(c => [c, 1])), cleared: b.cleared || {}, hidden: b.hidden || {}, starred: b.starred || {}, pinned: b.pinned || {} };
   } else if (k === 'solarr_presence') { beatAt = Date.now(); u[`presence/${me}`] = { '.sv': 'timestamp' }; }
   else if (k === 'solarr_typing') {
-    for (const [key, v] of Object.entries(n)) { const [f, t] = key.split('>'); if (f === me && t !== BOT && o[key] !== v) u[`typing/${t}/${me}`] = { '.sv': 'timestamp' }; }
-    for (const key of Object.keys(o)) { const [f, t] = key.split('>'); if (f === me && t !== BOT && !(key in n)) u[`typing/${t}/${me}`] = null; }
+    for (const [key, v] of Object.entries(n)) { const [f, t] = key.split('>'); if (f === me && t !== BOT && !t.startsWith('g_') && o[key] !== v) u[`typing/${t}/${me}`] = { '.sv': 'timestamp' }; }
+    for (const key of Object.keys(o)) { const [f, t] = key.split('>'); if (f === me && t !== BOT && !t.startsWith('g_') && !(key in n)) u[`typing/${t}/${me}`] = null; }
   }
   const ks = Object.keys(u); if (!ks.length) return;
   ks.forEach(x => setPath(x, u[x] && u[x]['.sv'] ? nowTs() : u[x]));
@@ -1261,6 +1294,139 @@ async function cloudDelete() {
   const r = await fetch(`${DB}/.json?auth=${TOK}`, { method: 'PATCH', body: JSON.stringify(u) }); if (!r.ok) throw new Error('x');
   await AUTH('delete', { idToken: TOK });
 }
+/* ---------- groups, delete-for-me ---------- */
+const isGroup = u => !!users()[u]?.group, forMe = m => m.to === me || (m.from !== me && isGroup(m.to));
+function pushNow(u) { Object.keys(u).forEach(x => setPath(x, u[x])); cw(u); rebuild(); }
+function hideMsg(id) { const U = users(); (U[me].hidden = U[me].hidden || {})[id] = true; saveUsers(U); renderAll(); }
+$('gBtn').onclick = () => {
+  if (!CLOUD_ON) { toast('Groups need cloud mode (see setup).'); return; }
+  closeModal('addModal'); $('gName').value = ''; const box = $('gList'); box.textContent = '';
+  Object.values(users()).filter(x => x.username !== me && !x.bot && !x.group).forEach(x => box.append(h('label', { class: 'toggle' }, h('span', { text: x.name + ' (@' + x.username + ')' }), h('input', { type: 'checkbox', value: x.username }))));
+  openModal('groupModal');
+};
+$('gCreate').onclick = () => {
+  const name = $('gName').value.trim(), ms = [...$('gList').querySelectorAll('input:checked')].map(i => i.value);
+  if (!name) { toast('Give the group a name.'); return; } if (!ms.length) { toast('Pick at least one person.'); return; }
+  const gid = 'g_' + uid(), members = Object.fromEntries([me, ...ms].map(x => [x, true])), u = {};
+  const g = { name: name.slice(0, 40), admin: me, created: nowTs(), color: Math.floor(Math.random() * COLORS.length), members };
+  Object.keys(members).forEach(x => u[`gmeta/${x}/${gid}`] = g);
+  pushNow(u); closeModal('groupModal'); openChat(gid);
+};
+$('mLeave').onclick = () => {
+  $('chatMenu').hidden = true; if (!confirm('Leave this group?')) return;
+  const g = current, u = {}; Object.keys(users()[g].members).forEach(x => { if (x !== me) u[`gmeta/${x}/${g}/members/${me}`] = null; });
+  u[`gmeta/${me}/${g}`] = null; $('back').click(); pushNow(u); renderAll();
+};
+
+/* ---------- voice & video calls (WebRTC, signalled through Firebase) ---------- */
+let pc = null, cstream = null, cpeer = null, ctimer = null, rtimer = null, inc = null; const callSeen = new Set();
+const ICE = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+const sig = (to, v) => { const u = {}; u[`calls/${to}/${me}`] = v ? { ...v, ts: nowTs() } : null; pushNow(u); };
+function callUI(txt, st) { $('call').hidden = false; $('callTxt').textContent = txt; $('callAcc').hidden = st !== 'in'; }
+async function mkPc(video) {
+  cstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !!video });
+  pc = new RTCPeerConnection(ICE); cstream.getTracks().forEach(t => pc.addTrack(t, cstream));
+  pc.ontrack = e => { $('rv').srcObject = e.streams[0]; };
+  pc.onconnectionstatechange = () => { const c = pc?.connectionState; if (c === 'connected') { clearTimeout(ctimer); callUI('Connected', 'on'); } if (c === 'failed' || c === 'closed') endCall(true); };
+  $('lv').srcObject = cstream; $('lv').hidden = !video;
+}
+const iceDone = () => new Promise(r => { if (pc.iceGatheringState === 'complete') return r(); pc.onicegatheringstatechange = () => pc.iceGatheringState === 'complete' && r(); setTimeout(r, 3500); });
+async function startCall(video) {
+  if (pc || !navigator.mediaDevices) { toast('Calls need https and a mic/camera.'); return; }
+  cpeer = current; callUI('Calling ' + users()[cpeer].name + '…', 'out');
+  try {
+    await mkPc(video); await pc.setLocalDescription(await pc.createOffer()); await iceDone();
+    sig(cpeer, { t: 'offer', v: !!video, sdp: pc.localDescription.sdp });
+    ctimer = setTimeout(() => { toast('No answer'); endCall(true); }, 45000);
+  } catch { toast('Couldn\'t start the call. Check mic/camera permission.'); endCall(false); }
+}
+function ring() { clearInterval(rtimer); beep(); rtimer = setInterval(() => inc ? beep() : clearInterval(rtimer), 1800); }
+function onCall() {
+  for (const [from, v] of Object.entries(CT.calls?.[me] || {})) {
+    const k = from + ':' + v.ts; if (callSeen.has(k) || nowTs() - v.ts > 45000) continue; callSeen.add(k);
+    if (v.t === 'offer' && !pc && !inc) { inc = { from, v }; cpeer = from; callUI((users()[from]?.name || from) + ' is calling…', 'in'); ring(); }
+    else if (v.t === 'answer' && pc && from === cpeer) { callUI('Connecting…', 'on'); pc.setRemoteDescription({ type: 'answer', sdp: v.sdp }).catch(() => endCall(true)); }
+    else if (v.t === 'end' && from === cpeer) endCall(false);
+  }
+}
+function endCall(notify) {
+  clearTimeout(ctimer); clearInterval(rtimer); if (notify && cpeer) sig(cpeer, { t: 'end' });
+  if (pc) { const p = pc; pc = null; p.close(); }
+  cstream && cstream.getTracks().forEach(t => t.stop()); cstream = null; inc = null; cpeer = null;
+  $('call').hidden = true; $('rv').srcObject = $('lv').srcObject = null; $('callMute').textContent = '🎤';
+}
+$('callAcc').onclick = async () => {
+  if (!inc) return; const { from, v } = inc; inc = null; callUI('Connecting…', 'on');
+  try { await mkPc(v.v); await pc.setRemoteDescription({ type: 'offer', sdp: v.sdp }); await pc.setLocalDescription(await pc.createAnswer()); await iceDone(); sig(from, { t: 'answer', sdp: pc.localDescription.sdp }); }
+  catch { toast('Couldn\'t answer the call.'); endCall(true); }
+};
+$('callEnd').onclick = () => endCall(true);
+$('callMute').onclick = () => { const t = cstream?.getAudioTracks()[0]; if (t) { t.enabled = !t.enabled; $('callMute').textContent = t.enabled ? '🎤' : '🔇'; } };
+$('callA').onclick = () => startCall(false); $('callV').onclick = () => startCall(true);
+/* ---------- voice notes, forwarding, stars, group admin ---------- */
+let rec = null, rchunks = [];
+$('micBtn').onclick = async () => {
+  if (rec) { rec.stop(); return; }
+  if (!navigator.mediaDevices || !window.MediaRecorder) { toast('Voice messages need https and a microphone.'); return; }
+  try {
+    const st = await navigator.mediaDevices.getUserMedia({ audio: true }); rchunks = []; rec = new MediaRecorder(st);
+    rec.ondataavailable = e => rchunks.push(e.data);
+    rec.onstop = () => {
+      st.getTracks().forEach(t => t.stop()); const b = new Blob(rchunks, { type: rec.mimeType }); rec = null; $('micBtn').textContent = '🎤';
+      if (b.size > 700000) { toast('Voice message too long.'); return; }
+      const r = new FileReader(); r.onload = () => sendCurrent(null, { audio: r.result }); r.readAsDataURL(b);
+    };
+    rec.start(); $('micBtn').textContent = '⏹'; setTimeout(() => rec && rec.state === 'recording' && rec.stop(), 120000);
+  } catch { toast('Couldn\'t access the microphone.'); }
+};
+function fwdTo(to, src) {
+  const m = { id: uid(), from: me, to, ts: nowTs(), fwd: true }; ['text', 'image', 'audio', 'file'].forEach(k => src[k] && (m[k] = src[k]));
+  const M = allMsgs(); M.push(m); if (!save('solarr_msgs', M)) return;
+  const U = users(); if (!isGroup(to) && !U[me].contacts.includes(to)) { U[me].contacts.push(to); saveUsers(U); }
+  toast('Forwarded'); closeModal('fwdModal'); renderAll(true);
+}
+function openFwd(m) {
+  const box = $('fwdList'); box.textContent = '';
+  Object.values(users()).filter(x => x.username !== me).forEach(x => box.append(h('div', { class: 'item', onclick: () => fwdTo(x.username, m) }, avatar(x, 38), h('div', { class: 't' }, h('div', { class: 'n', text: x.name })))));
+  openModal('fwdModal');
+}
+const starred = id => !!(users()[me].starred || {})[id];
+function toggleStar(id) { const U = users(), s = U[me].starred = U[me].starred || {}; if (s[id]) delete s[id]; else s[id] = true; saveUsers(U); }
+$('mStar').onclick = () => {
+  $('chatMenu').hidden = true; const b = $('starBody'); b.textContent = ''; const L = thread(current).filter(m => starred(m.id) && !m.deleted);
+  if (!L.length) b.append(h('p', { class: 'muted', text: 'No starred messages in this chat.' }));
+  L.forEach(m => b.append(h('div', { class: 'item' }, h('div', { class: 't' }, h('div', { class: 'n', text: (m.from === me ? 'You' : users()[m.from]?.name || m.from) + ' · ' + listTime(m.ts) }), h('div', { class: 'p', text: previewOf(m) })))));
+  openModal('starModal');
+};
+function gUpd(g, fn) { const u = {}; fn(u, Object.keys(g.members)); pushNow(u); renderAll(); showProfile(g.username); }
+function groupAdmin(g) {
+  const adm = x => g.members[x] === 'admin' || g.admin === x, mine = adm(me), id = g.username, box = h('div', { style: 'text-align:left;margin-top:14px' });
+  Object.keys(g.members).forEach(x => {
+    const row = h('div', { class: 'toggle' }, h('span', { text: (users()[x]?.name || x) + (adm(x) ? ' · admin' : '') }));
+    if (mine && x !== me) row.append(h('span', {},
+      adm(x) ? null : h('button', { class: 'act', text: 'Make admin', onclick: () => gUpd(g, (u, ms) => ms.forEach(y => u[`gmeta/${y}/${id}/members/${x}`] = 'admin')) }),
+      h('button', { class: 'act del', text: 'Remove', onclick: () => gUpd(g, (u, ms) => { ms.filter(y => y !== x).forEach(y => u[`gmeta/${y}/${id}/members/${x}`] = null); u[`gmeta/${x}/${id}`] = null; }) })));
+    box.append(row);
+  });
+  const rest = Object.values(users()).filter(x => !x.bot && !x.group && !g.members[x.username]);
+  if (mine && rest.length) {
+    const sel = h('select', { style: 'width:100%;padding:10px;border-radius:10px;margin-top:8px' }, rest.map(x => h('option', { value: x.username, text: x.name + ' (@' + x.username + ')' })));
+    box.append(sel, h('button', { class: 'btn ghost block', style: 'margin-top:8px', text: '＋ Add to group', onclick: () => { const n = sel.value; gUpd(g, (u, ms) => { u[`gmeta/${n}/${id}`] = { name: g.name, admin: g.admin, created: g.created, color: g.color, members: { ...g.members, [n]: true } }; ms.forEach(y => u[`gmeta/${y}/${id}/members/${n}`] = true); }); } }));
+  }
+  return box;
+}
+/* ---------- status (24h) and pinned chats ---------- */
+$('mPin').onclick = () => { $('chatMenu').hidden = true; const U = users(), pn = U[me].pinned = U[me].pinned || {}; if (pn[current]) delete pn[current]; else pn[current] = true; saveUsers(U); renderList(); };
+function showStatus() {
+  const b = $('stBody'); b.textContent = '';
+  const L = Object.entries(CT.status || {}).filter(([x, v]) => v && x !== me && users()[x] && nowTs() - v.ts < 864e5).sort((a, c) => c[1].ts - a[1].ts);
+  if (!L.length) b.append(h('p', { class: 'muted', text: 'No recent status updates from your contacts.' }));
+  L.forEach(([x, v]) => { const c = COLORS[(v.color || 0) % COLORS.length]; b.append(h('div', { style: `background:linear-gradient(135deg,${c[0]},${c[1]});color:#fff;padding:12px 14px;border-radius:14px;margin-bottom:10px;text-shadow:0 1px 2px rgba(0,0,0,.3)` }, h('b', { text: users()[x].name + ' · ' + listTime(v.ts) }), h('div', { text: v.text, style: 'margin-top:4px;white-space:pre-wrap' }))); });
+  openModal('statusModal');
+}
+$('stBtn').onclick = () => { if (!CLOUD_ON) { toast('Status needs cloud mode (see setup).'); return; } showStatus(); };
+$('stPost').onclick = () => { const t = $('stText').value.trim().slice(0, 300); if (!t) return; pushNow({ ['status/' + me]: { text: t, ts: nowTs(), color: users()[me].color || 0 } }); $('stText').value = ''; toast('Status posted'); };
+$('stDel').onclick = () => { pushNow({ ['status/' + me]: null }); toast('Status deleted'); };
 window.addEventListener('online', flush); window.addEventListener('offline', () => setNet(false));
 
 /* ---------- full screen ---------- */
@@ -1302,7 +1468,7 @@ function handleDataChange(key, oldValue, newValue) {
   if (key === 'solarr_msgs') {
     try {
       const old = new Set(JSON.parse(oldValue || '[]').map(m => m.id));
-      const fresh = JSON.parse(newValue || '[]').filter(m => !old.has(m.id) && m.to === me && !m.deleted);
+      const fresh = JSON.parse(newValue || '[]').filter(m => !old.has(m.id) && forMe(m) && !m.deleted);
       if (fresh.length) {
         if (document.hidden || !fresh.some(m => m.from === current)) beep();
         notifyIncoming(fresh);
