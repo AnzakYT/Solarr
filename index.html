@@ -309,6 +309,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
         </div>
         <form class="composer" id="composer">
           <button class="icon" type="button" id="emojiBtn" title="Emoji">😊</button>
+          <button class="icon" type="button" id="gifBtn" title="GIF" style="font-size:.78rem;font-weight:700">GIF</button>
           <button class="icon" type="button" id="attachBtn" title="Send a photo">📎</button>
           <input type="file" id="file" accept="image/*" hidden>
           <textarea id="text" rows="1" placeholder="Message" maxlength="3000"></textarea>
@@ -379,6 +380,12 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
   <button class="btn ghost block" id="themeReset2" type="button">Reset to default</button>
 </div></div>
 
+<div class="modal" id="gifModal" hidden><div class="sheet">
+  <div class="head"><h3>GIFs</h3><button class="icon" data-close>✕</button></div>
+  <div class="field"><input type="text" id="gifQ" placeholder="Search GIFs…" autocomplete="off"></div>
+  <div id="gifGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;max-height:300px;overflow-y:auto;margin-top:8px"></div>
+  <div class="field" style="margin-top:10px"><input type="text" id="gifUrl" placeholder="…or paste a GIF link and press Enter" autocomplete="off"></div>
+</div></div>
 <div class="modal" id="groupModal" hidden><div class="sheet">
   <div class="head"><h3 id="gmTitle">Group</h3><button class="icon" data-close>✕</button></div>
   <div id="gmBody"></div>
@@ -427,7 +434,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
    Paste your Firebase details to get REAL accounts and live messaging between devices.
    See README.md for the 5-minute setup and the database rules. */
 const FIREBASE = Object.assign({
-  apiKey: 'AIzaSyAqM9YgaLIMvCYy909A0RI68Vn_AXlolHA  ',        // e.g. 'AIzaSy...'
+  apiKey: 'AIzaSyAqM9YgaLIMvCYy909A0RI68Vn_AXlolHA',        // e.g. 'AIzaSy...'
   databaseURL: 'https://solarr-92455-default-rtdb.asia-southeast1.firebasedatabase.app',   // e.g. 'https://your-project-default-rtdb.firebaseio.com'
   authHost: 'https://identitytoolkit.googleapis.com',
   tokenHost: 'https://securetoken.googleapis.com'
@@ -450,7 +457,7 @@ const h = (tag, props = {}, ...kids) => {
 /* ---------- storage ---------- */
 /* In cloud mode these four collections live in memory (mirrored from Firebase); everything else stays in localStorage. */
 const MEM = {};
-const CLOUD_KEYS = new Set(['solarr_users', 'solarr_msgs', 'solarr_presence', 'solarr_typing']);
+const CLOUD_KEYS = new Set(['solarr_users', 'solarr_msgs', 'solarr_presence', 'solarr_typing', 'solarr_groups']);
 const isCloudKey = k => CLOUD_ON && CLOUD_KEYS.has(k);
 const load = (k, d) => { try { const v = JSON.parse(isCloudKey(k) ? MEM[k] : localStorage.getItem(k)); return v ?? d; } catch { return d; } };
 const save = (k, v) => {
@@ -466,7 +473,48 @@ const allMsgs = () => load('solarr_msgs', []);
 const prefs = () => ({ sound: true, ...load('solarr_prefs', {}) });
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const pick = a => a[Math.floor(Math.random() * a.length)];
-function cloudPush() {} /* cloud mode was referenced but never implemented; stub stops crashes */
+/* ---------- Firebase sync (Realtime Database over REST + streaming; no SDK) ---------- */
+const cloud = {}; let cWarned = false;
+const cBase = () => FIREBASE.databaseURL.replace(/\/$/, '') + '/solarr/';
+function cErr(st) { if (cWarned) return; cWarned = true; toast('Firebase problem' + (st ? ' (HTTP ' + st + ')' : '') + ': check databaseURL and that the database rules allow read/write.'); }
+const cReq = (method, path, body) => fetch(cBase() + path + '.json', { method, body: body === undefined ? undefined : JSON.stringify(body) }).then(r => { if (!r.ok) cErr(r.status); }).catch(() => cErr(0));
+function cloudPush(k, old, v) {
+  const name = k.slice(7), toMap = x => k === 'solarr_msgs' ? Object.fromEntries((x || []).map(m => [m.id, m])) : (x || {});
+  const o = toMap(old), n = toMap(v); cloud[k] = JSON.parse(JSON.stringify(n));
+  for (const id of Object.keys(n)) {
+    const a = n[id], b = o[id] || {}, f = {};
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) f[key] = a[key] ?? null;
+    if (Object.keys(f).length) cReq('PATCH', name + '/' + id, f);
+  }
+  for (const id of Object.keys(o)) if (!(id in n)) cReq('DELETE', name + '/' + id);
+}
+function cApply(k, path, data) {
+  const seg = path.split('/').filter(Boolean);
+  if (!seg.length) { cloud[k] = data || {}; return; }
+  let o = cloud[k] || (cloud[k] = {});
+  for (let i = 0; i < seg.length - 1; i++) o = o[seg[i]] = o[seg[i]] || {};
+  if (data == null) delete o[seg[seg.length - 1]]; else o[seg[seg.length - 1]] = data;
+}
+function cRebuild(k) {
+  const old = MEM[k]; let v = cloud[k] || {};
+  if (k === 'solarr_msgs') v = Object.values(v).sort((a, b) => a.ts - b.ts);
+  else if (k === 'solarr_users') Object.values(v).forEach(u => { u.contacts = u.contacts || []; u.cleared = u.cleared || {}; });
+  else if (k === 'solarr_groups') Object.values(v).forEach(g => { g.members = g.members || []; g.admins = g.admins || []; });
+  MEM[k] = JSON.stringify(v);
+  if (old !== MEM[k]) handleDataChange(k, old, MEM[k]);
+}
+function cloudInit() {
+  return new Promise(res => {
+    let left = CLOUD_KEYS.size; setTimeout(res, 7000);
+    CLOUD_KEYS.forEach(k => {
+      let first = true; const done = () => { if (first) { first = false; if (!--left) res(); } };
+      const es = new EventSource(cBase() + k.slice(7) + '.json');
+      es.addEventListener('put', e => { const d = JSON.parse(e.data); cApply(k, d.path, d.data); cRebuild(k); done(); });
+      es.addEventListener('patch', e => { const d = JSON.parse(e.data); for (const [kk, val] of Object.entries(d.data || {})) cApply(k, d.path.replace(/\/$/, '') + '/' + kk, val); cRebuild(k); });
+      es.onerror = () => { if (first) cErr(0); done(); };
+    });
+  });
+}
 const groups = () => load('solarr_groups', {});
 const isGroup = id => typeof id === 'string' && id.startsWith('grp:');
 const G = id => groups()[id];
@@ -684,7 +732,7 @@ function login(u, remember) {
   me = u; start();
 }
 function logout() {
-  if (call) endCall();
+  if (call) endCall(); if (sigES) { sigES.close(); sigES = null; }
   localStorage.removeItem('solarr_session'); sessionStorage.removeItem('solarr_session');
   me = current = null; document.title = 'Solarr';
   $('app').hidden = true; $('auth').hidden = false; $('galaxy').hidden = true; $('aiPanel').hidden = true;
@@ -696,7 +744,7 @@ function thread(o) {
   const cl = (users()[me].cleared || {})[o] || 0;
   return allMsgs().filter(m => (isGroup(o) ? m.to === o : ((m.from === me && m.to === o) || (m.from === o && m.to === me))) && m.ts > cl).sort((a, b) => a.ts - b.ts);
 }
-function previewOf(m) { return m.deleted ? '🚫 Message deleted' : m.image ? '📷 ' + (m.text || 'Photo') : m.text; }
+function previewOf(m) { return m.deleted ? '🚫 Message deleted' : m.gif ? '🎞 GIF' : m.image ? '📷 ' + (m.text || 'Photo') : m.text; }
 function markRead() {
   if (!current || document.hidden) return;
   const M = allMsgs(); let ch = false; const now = Date.now();
@@ -810,6 +858,7 @@ function msgNode(m, cont, more, M) {
     const o = M.find(x => x.id === m.replyTo);
     b.append(h('div', { class: 'quote' }, h('b', { text: o ? (o.from === me ? 'You' : U[o.from]?.name || o.from) : 'Message' }), h('span', { text: o ? previewOf(o) : 'Original message unavailable' })));
   }
+  if (m.gif && /^https:\/\//.test(m.gif)) b.append(h('img', { class: 'rimg', src: m.gif, alt: 'GIF', loading: 'lazy', onclick: e => { e.stopPropagation(); $('lightbox').firstElementChild.src = m.gif; openModal('lightbox'); } }));
   if (m.image && /^data:image\//.test(m.image)) b.append(h('img', { class: 'rimg', src: m.image, alt: 'Photo', onclick: e => { e.stopPropagation(); $('lightbox').firstElementChild.src = m.image; openModal('lightbox'); } }));
   if (m.text) { const t = h('span'); linkify(t, m.text); b.append(t); }
   const meta = h('div', { class: 'meta' }, m.edited ? h('span', { text: 'edited' }) : null, h('span', { text: fmtTime(m.ts) }));
@@ -829,7 +878,7 @@ function toolsNode(m) {
   const act = (label, fn, cls = '') => h('button', { type: 'button', class: 'act ' + cls, text: label, onclick: e => { e.stopPropagation(); selectedId = null; fn(); renderThread(); } });
   const acts = h('div', { class: 'acts' }, act('↩ Reply', () => startReply(m)));
   if (m.text) acts.append(act('⧉ Copy', () => { (navigator.clipboard ? navigator.clipboard.writeText(m.text) : Promise.reject()).then(() => toast('Copied'), () => toast('Couldn\'t copy')); }));
-  if (mine && m.text && !m.image) acts.append(act('✎ Edit', () => startEdit(m)));
+  if (mine && m.text && !m.image && !m.gif) acts.append(act('✎ Edit', () => startEdit(m)));
   if (mine) acts.append(act('🗑 Delete', () => { if (confirm('Delete this message for everyone?')) removeMsg(m.id); }, 'del'));
   return h('div', { class: 'tools' },
     h('div', { class: 'quick' }, QUICK.map(em => h('button', { type: 'button', class: em === my ? 'mine' : '', text: em, onclick: e => { e.stopPropagation(); selectedId = null; react(m.id, em); } }))),
@@ -844,7 +893,7 @@ function react(id, em) {
 }
 function removeMsg(id) {
   const M = allMsgs(), m = M.find(x => x.id === id); if (!m || m.from !== me) return;
-  m.deleted = true; delete m.text; delete m.image; delete m.reactions; delete m.replyTo;
+  m.deleted = true; delete m.text; delete m.image; delete m.gif; delete m.reactions; delete m.replyTo;
   save('solarr_msgs', M); renderAll();
 }
 
@@ -864,7 +913,7 @@ $('text').addEventListener('keydown', e => {
   if (e.key === 'Escape') cancelCompose();
 });
 $('composer').onsubmit = e => { e.preventDefault(); sendCurrent(); };
-function sendCurrent(image) {
+function sendCurrent(image, gif) {
   if (!current) return;
   if (isGroup(current)) { const g = G(current); if (!g || !g.members.includes(me)) { toast('You\'re not in this group.'); return; } if (g.adminsOnly && !isAdmin(g)) { toast('Only admins can send messages here.'); return; } }
   const ta = $('text'), text = ta.value.trim();
@@ -874,9 +923,9 @@ function sendCurrent(image) {
     if (m && m.from === me && m.text !== text) { m.text = text; m.edited = true; save('solarr_msgs', M); }
     cancelCompose(); ta.value = ''; autosize(); renderAll(); return;
   }
-  if (!text && !image) return;
+  if (!text && !image && !gif) return;
   const m = { id: uid(), from: me, to: current, text, ts: Date.now() };
-  if (image) m.image = image; if (replyTo) m.replyTo = replyTo;
+  if (image) m.image = image; if (gif) m.gif = gif; if (replyTo) m.replyTo = replyTo;
   const M = allMsgs(); M.push(m); if (!save('solarr_msgs', M)) return;
   if (!isGroup(current) && !users()[me].contacts.includes(current)) { const U = users(); U[me].contacts.push(current); saveUsers(U); }
   ta.value = ''; drafts[current] = ''; autosize(); cancelCompose(); setTyping(current, false); lastTypingWrite = 0;
@@ -887,6 +936,10 @@ $('attachBtn').onclick = () => $('file').click();
 $('file').onchange = () => {
   const f = $('file').files[0]; $('file').value = ''; if (!f) return;
   if (!/^image\//.test(f.type)) { toast('Please choose an image.'); return; }
+  if (f.type === 'image/gif') { /* keep animated GIFs as-is (canvas would flatten them) */
+    if (f.size > 700000) { toast('That GIF is over 700 KB. Use the GIF button to search, or paste a link.'); return; }
+    const rg = new FileReader(); rg.onload = () => sendCurrent(rg.result); rg.readAsDataURL(f); return;
+  }
   const rd = new FileReader();
   rd.onload = () => {
     const img = new Image();
@@ -1021,6 +1074,27 @@ $('deleteBtn').onclick = () => {
   save('solarr_groups', Gs); logout();
 };
 
+/* ---------- GIFs ---------- */
+const GIPHY = window.SOLARR_GIPHY || ''; /* paste a free GIPHY API key between the quotes, e.g. || 'abc123' */
+const gifOk = u => /^https:\/\/\S+$/.test(u) && (/\.(gif|webp)(\?|$)/i.test(u) || /^https:\/\/(media\d*\.giphy\.com|i\.giphy\.com|media\.tenor\.com|c\.tenor\.com)\//.test(u));
+let gifT;
+$('gifBtn').onclick = () => { openModal('gifModal'); $('gifQ').value = ''; loadGifs(''); setTimeout(() => $('gifQ').focus(), 60); };
+$('gifQ').oninput = () => { clearTimeout(gifT); gifT = setTimeout(() => loadGifs($('gifQ').value.trim()), 350); };
+$('gifUrl').onkeydown = e => {
+  if (e.key !== 'Enter') return; e.preventDefault(); const u = e.target.value.trim();
+  if (!gifOk(u)) { toast('Paste a direct GIF link (ends in .gif, or a giphy/tenor media link).'); return; }
+  e.target.value = ''; closeModal('gifModal'); sendCurrent(null, u);
+};
+async function loadGifs(q) {
+  const g = $('gifGrid'), msg = t => h('div', { class: 'listempty', style: 'grid-column:1/-1', text: t }); g.textContent = '';
+  if (!GIPHY) { g.append(msg('GIF search needs a free GIPHY API key. You can still paste a GIF link below, or attach a .gif with 📎.')); return; }
+  try {
+    const res = await fetch(`https://api.giphy.com/v1/gifs/${q ? 'search' : 'trending'}?api_key=${encodeURIComponent(GIPHY)}&limit=24&rating=pg-13${q ? '&q=' + encodeURIComponent(q) : ''}`);
+    const d = await res.json(); if (!d.data?.length) { g.append(msg('No GIFs found.')); return; }
+    d.data.forEach(x => { const u = x.images.fixed_height.url; g.append(h('img', { src: x.images.fixed_height_small.url, alt: x.title || 'GIF', style: 'width:100%;border-radius:10px;cursor:pointer', onclick: () => { closeModal('gifModal'); sendCurrent(null, u); } })); });
+  } catch { g.append(msg('Couldn\'t load GIFs. Check your key and connection.')); }
+}
+
 /* ---------- groups ---------- */
 $('newGroup').onclick = () => {
   const U = users(), b = $('gmBody'), sel = new Set(); $('gmTitle').textContent = 'New group'; b.textContent = '';
@@ -1081,10 +1155,28 @@ function addToGroup(id) {
 
 /* ---------- calls (WebRTC). Signalling goes through localStorage, so calls work between tabs of THIS browser.
    Calls across devices need a real signalling server (e.g. the Firebase cloud mode). ---------- */
-const RTC = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+/* For calls on mobile data / strict networks add a TURN server: window.SOLARR_TURN = [{ urls:'turn:host:3478', username:'..', credential:'..' }] */
+const RTC = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, ...(window.SOLARR_TURN || [])] };
 let call = null, incoming = null, ringT = null, localStream = null;
 const seenSig = new Set();
+let sigES = null;
+function listenSig() {
+  if (sigES || !CLOUD_ON) return;
+  sigES = new EventSource(cBase() + 'sig/' + me + '.json');
+  const take = (k, s) => {
+    if (!s || !s.type || seenSig.has(k)) return; seenSig.add(k);
+    fetch(cBase() + 'sig/' + me + '/' + k + '.json', { method: 'DELETE' }).catch(() => {});
+    if (Date.now() - s.ts < 60000) handleSig(s);
+  };
+  const eat = e => {
+    const d = JSON.parse(e.data); if (!d.data) return;
+    if (d.path === '/') Object.entries(d.data).forEach(([k, s]) => take(k, s));
+    else { const seg = d.path.split('/').filter(Boolean); if (seg.length === 1) take(seg[0], d.data); }
+  };
+  sigES.addEventListener('put', eat); sigES.addEventListener('patch', eat);
+}
 function sig(to, type, data = {}) {
+  if (CLOUD_ON) { fetch(cBase() + 'sig/' + to + '.json', { method: 'POST', body: JSON.stringify({ from: me, to, type, ts: Date.now(), ...data }) }).catch(() => {}); return; }
   const S = load('solarr_sig', []).filter(x => Date.now() - x.ts < 60000);
   S.push({ id: uid(), from: me, to, type, ts: Date.now(), ...data }); save('solarr_sig', S.slice(-80));
 }
@@ -1324,7 +1416,7 @@ function start() {
   ensureBot();
   $('auth').hidden = true; $('app').hidden = false; $('galaxy').hidden = false; aiLoad(); aiMode(); aiRender();
   current = null; $('thread').hidden = true; $('emptyState').hidden = false; $('shell').classList.remove('chatopen');
-  beat(); renderMe(); renderAll();
+  beat(); renderMe(); renderAll(); listenSig();
   if (!timersOn) {
     timersOn = true;
     setInterval(() => { if (me) beat(); }, 10000);
@@ -1361,7 +1453,7 @@ function handleDataChange(key, oldValue, newValue) {
 window.addEventListener('storage', e => {
   if (!me) return;
   if (e.key === 'solarr_theme') applyTheme(load('solarr_theme', DEFAULT_THEME));
-  else if (!CLOUD_ON) handleDataChange(e.key, e.oldValue, e.newValue);
+  else if (!CLOUD_ON || e.key === 'solarr_sig') handleDataChange(e.key, e.oldValue, e.newValue);
 });
 document.addEventListener('visibilitychange', () => { if (me && !document.hidden) renderAll(); });
 window.addEventListener('focus', () => { if (me) { beat(); renderAll(); } });
@@ -1370,9 +1462,12 @@ document.addEventListener('keydown', e => {
 });
 
 applyTheme(load('solarr_theme', DEFAULT_THEME));
-ensureBot();
-const saved = localStorage.getItem('solarr_session') || sessionStorage.getItem('solarr_session');
-if (saved && users()[saved]) { me = saved; start(); } else { $('auth').hidden = false; }
+if (CLOUD_ON) { $('auth').hidden = true; document.querySelector('.card .note').textContent = 'Connected to Firebase: accounts, groups and messages sync across devices.'; }
+(CLOUD_ON ? cloudInit() : Promise.resolve()).then(() => {
+  ensureBot();
+  const saved = localStorage.getItem('solarr_session') || sessionStorage.getItem('solarr_session');
+  if (saved && users()[saved]) { me = saved; start(); } else { $('auth').hidden = false; }
+});
 })();
 </script>
 </body>
