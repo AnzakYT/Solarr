@@ -1029,7 +1029,7 @@ $('addForm').onsubmit = e => {
   const u = $('addUser').value.trim().toLowerCase().replace(/^@/, '');
   if (!u) return;
   if (u === me) { $('addErr').textContent = 'That\'s you! 😄'; return; }
-  if (!users()[u]) { $('addErr').textContent = `No one is signed up as "${u}" on this browser.`; return; }
+  if (!users()[u]) { $('addErr').textContent = (CLOUD_ON ? `No account "${u}" in the database yet. They need to sign up on this same site first.` : `No one is signed up as "${u}" on this browser.`); return; }
   startChatWith(u);
 };
 $('search').oninput = renderList;
