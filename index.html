@@ -112,6 +112,33 @@ main{flex:1;min-width:0;background:var(--panel);border-radius:26px;display:flex;
 .toast{background:#2b3a42;color:#fff;padding:10px 20px;border-radius:22px;max-width:90vw}
 @media(max-width:760px){.wa{padding:0;gap:0}aside{width:100%;max-width:none;border-radius:0}main{display:none;border-radius:0}.wa.open aside{display:none}.wa.open main{display:flex}.back{display:grid}.b{max-width:84%}#msgs{margin:0;border-radius:0;padding:10px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#msgs{background:linear-gradient(170deg,var(--w1,var(--msgbg)),var(--w2,var(--msgbg)))}
+.b audio{display:block;width:230px;max-width:100%;height:36px;margin-bottom:4px}
+.callm{display:flex;align-items:center;gap:12px;min-width:190px;cursor:pointer}.callm i{width:40px;height:40px;border-radius:50%;background:rgba(130,140,150,.2);display:grid;place-items:center;font-style:normal}.callm small{display:block;color:var(--sub)}
+.rec{flex:1;display:flex;align-items:center;gap:12px;height:44px;padding:0 8px}.rec i{width:11px;height:11px;border-radius:50%;background:var(--danger);animation:bl 1s infinite}@keyframes bl{50%{opacity:.2}}
+#callUI,#incoming{position:fixed;inset:0;z-index:300;background:#0b141a;color:#fff;display:flex;flex-direction:column;align-items:center;overflow:hidden}
+#incoming{z-index:310;background:linear-gradient(#0b141a,#1f2c34)}
+#remoteV{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:none}#callUI.showv #remoteV{display:block}
+.cinfo{position:relative;z-index:2;text-align:center;margin-top:12vh;text-shadow:0 1px 6px rgba(0,0,0,.6)}.cinfo .av{margin:0 auto 18px}
+.cinfo h2{font-weight:400;font-size:28px}.cinfo p{margin-top:6px;color:#c1cbd1}
+#callUI.showv .cinfo{position:absolute;top:14px;left:18px;margin:0;text-align:left;display:flex;align-items:center;gap:12px}
+#callUI.showv .cinfo .av{width:40px!important;height:40px!important;font-size:17px!important;margin:0}
+#localV{position:absolute;right:16px;bottom:120px;width:min(26vw,220px);aspect-ratio:3/4;object-fit:cover;border-radius:18px;background:#222;z-index:3;transform:scaleX(-1)}
+#localV.scr{transform:none;aspect-ratio:16/9;object-fit:contain;width:min(34vw,300px)}
+.cbar{position:absolute;bottom:0;left:0;right:0;z-index:4;display:flex;justify-content:center;gap:16px;padding:20px 16px calc(26px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.55))}
+#incoming .cbar{background:none;gap:70px}
+.cb{width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;color:#fff;font-size:22px}.cb:hover{background:rgba(255,255,255,.28)}
+.cb.on{background:#fff;color:#111}.cb.end{background:var(--danger)}.cb.acc{background:var(--acc)}
+.galaxy{position:fixed;right:22px;bottom:90px;width:58px;height:58px;border-radius:50%;z-index:56;background:radial-gradient(circle,#fff 0 7%,#ffd27a 10%,#a07bff 30%,#2a1a66 60%,#070a1f 100%);box-shadow:0 0 22px rgba(138,92,255,.7),0 0 50px rgba(255,160,60,.3);transition:transform .2s}.galaxy:hover{transform:scale(1.1)}
+.aip{position:fixed;right:22px;bottom:158px;width:370px;max-width:calc(100vw - 24px);height:min(520px,calc(100dvh - 190px));background:var(--panel);border-radius:24px;box-shadow:0 8px 40px rgba(0,0,0,.45);display:flex;flex-direction:column;z-index:55;overflow:hidden}
+.aip .hd{display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(135deg,#1b1240,#3a1f7a);color:#fff}
+#aiMsgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.am{max-width:88%;padding:8px 13px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4}.am.u{align-self:flex-end;background:var(--out)}.am.a{align-self:flex-start;background:var(--in)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px}.chips button{background:var(--input);border-radius:16px;padding:5px 12px;font-size:12.5px}
+.aif{display:flex;gap:8px;padding:8px 12px 12px}
+.sw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.sw div{height:44px;border-radius:14px;border:2px solid transparent;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;font-size:11px;color:#000a;padding-bottom:2px}.sw div.on{border-color:var(--acc)}
+input[type=color]{height:40px;padding:3px;cursor:pointer}
+@media(max-width:760px){.galaxy{bottom:96px;right:14px}.aip{right:8px}}
 </style>
 </head>
 <body>
@@ -168,16 +195,18 @@ main{flex:1;min-width:0;background:var(--panel);border-radius:26px;display:flex;
   <main>
     <div id="welcome"><div class="big">☀️</div><h2>Solarr</h2><p>Pick a chat on the left, or tap <b>＋</b> and enter a friend's username to start.</p></div>
     <section id="chat" hidden>
-      <div class="chead"><button class="ib back" id="back" aria-label="Back">‹</button><div id="hAv"></div><div class="who"><b id="hName"></b><small id="hStatus"></small></div></div>
+      <div class="chead"><button class="ib back" id="back" aria-label="Back">‹</button><div id="hAv"></div><div class="who"><b id="hName"></b><small id="hStatus"></small></div><button class="ib" id="btnVideo" aria-label="Video call">📹</button><button class="ib" id="btnCall" aria-label="Voice call">📞</button></div>
       <div id="msgs"></div>
       <button id="toBottom" class="ib" hidden aria-label="Latest">↓</button>
       <div id="replybar" hidden><div class="in2"><div class="qq"><b id="rbT"></b><span id="rbS"></span></div><button class="ib" id="rbX" aria-label="Cancel reply">✕</button></div></div>
-      <div class="comp">
+      <div class="comp" id="comp">
         <button class="ib" id="emojiBtn" aria-label="Emoji">😊</button>
         <button class="ib" id="attachBtn" aria-label="Send photo">📎</button><input type="file" id="file" accept="image/*" hidden>
         <textarea id="text" rows="1" placeholder="Type a message" maxlength="3000"></textarea>
         <button class="ib send" id="sendBtn" aria-label="Send" hidden>➤</button>
+        <button class="ib" id="micBtn" aria-label="Voice message">🎤</button>
       </div>
+      <div class="comp" id="recBar" hidden><button class="ib" id="recCancel" aria-label="Cancel recording">🗑</button><div class="rec"><i></i><span id="recT">0:00</span><span class="sub">Recording…</span></div><button class="ib send" id="recSend" aria-label="Send voice message">➤</button></div>
       <div class="pop" id="emoji" hidden></div>
     </section>
   </main>
@@ -195,12 +224,45 @@ main{flex:1;min-width:0;background:var(--panel);border-radius:26px;display:flex;
   <div class="fld"><label for="setAbout">About</label><input id="setAbout" maxlength="90"></div>
   <button class="btn" id="saveProf">Save profile</button>
   <h4>Appearance</h4><div class="seg" id="themeSeg"><button data-v="dark">Dark</button><button data-v="light">Light</button></div>
+  <h4>Chat wallpaper</h4><div class="sw" id="walls"></div>
+  <div style="display:flex;gap:10px"><div class="fld" style="flex:1"><label for="w1">Top colour</label><input type="color" id="w1"></div><div class="fld" style="flex:1"><label for="w2">Bottom colour</label><input type="color" id="w2"></div></div>
   <h4>Account</h4><div class="sub" id="setAcct" style="margin-bottom:10px"></div>
   <button class="gbtn" id="setLogout">Log out</button>
 </div></div>
 <div class="modal" id="lightbox" hidden><img alt="Photo"></div>
 <div id="toast"></div>
 
+<div id="incoming" hidden>
+  <div class="cinfo"><div id="inAv"></div><h2 id="inName"></h2><p id="inType"></p></div>
+  <div class="cbar"><button class="cb end" id="inDecline" aria-label="Decline">📵</button><button class="cb acc" id="inAccept" aria-label="Accept">📞</button></div>
+</div>
+<div id="callUI" hidden>
+  <video id="remoteV" autoplay playsinline></video>
+  <div class="cinfo"><div id="cAv"></div><div><h2 id="cName"></h2><p id="cStatus"></p></div></div>
+  <video id="localV" autoplay playsinline muted hidden></video>
+  <div class="cbar">
+    <button class="cb" id="cMute" aria-label="Mute">🎤</button><button class="cb" id="cCam" aria-label="Camera" hidden>📹</button>
+    <button class="cb" id="cShare" aria-label="Share screen">🖥</button><button class="cb end" id="cEnd" aria-label="End call">📵</button>
+  </div>
+</div>
+<button class="galaxy" id="galaxy" aria-label="Open Solarr AI" hidden></button>
+<div class="aip" id="aiPanel" hidden>
+  <div id="aiChat" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <div class="hd"><b style="flex:1">Solarr AI ✦<small id="aiMode" style="display:block;font-weight:400;opacity:.75;font-size:12px"></small></b><button class="ib" id="aiGear" aria-label="Connect Claude" style="color:#fff">⚙</button><button class="ib" id="aiClose" aria-label="Close" style="color:#fff">✕</button></div>
+    <div id="aiMsgs"></div><div class="chips" id="aiChips"></div>
+    <form class="aif" id="aiForm"><input id="aiIn" placeholder="Ask Solarr AI…" autocomplete="off" maxlength="1000"><button class="ib send" aria-label="Send">➤</button></form>
+  </div>
+  <div id="aiSet" hidden style="padding:18px;overflow-y:auto;flex:1">
+    <h3 style="font-weight:500">Connect Claude</h3>
+    <p class="sub" style="margin:6px 0 14px;line-height:1.5;font-size:13px">Add your own Anthropic API key so Solarr AI can answer anything. Without one it handles app commands, maths and quick fun.</p>
+    <div class="fld"><label>API key</label><input type="password" id="aiKeyIn" placeholder="sk-ant-…" autocomplete="off"></div>
+    <div class="fld"><label>Model</label><input id="aiModelIn" autocomplete="off"></div>
+    <div class="err" id="aiSetMsg"></div>
+    <div style="display:flex;gap:8px"><button class="btn" id="aiSaveBtn" type="button">Save</button><button class="gbtn" id="aiRemove" type="button">Remove</button></div>
+    <p class="sub" style="font-size:12px;margin-top:12px;line-height:1.5">Stored only in this browser and sent straight to api.anthropic.com. Avoid shared computers and set a spending limit on the key.</p>
+    <button class="gbtn" id="aiBack" type="button" style="margin-top:12px">Back</button>
+  </div>
+</div>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, RecaptchaVerifier, signInWithPhoneNumber } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -247,13 +309,23 @@ const ERR = {
 };
 const friendly = e => ERR[e?.code] || e?.message || 'Something went wrong.';
 
+/* wallpapers */
+const WALLS = [{ n: 'Default' }, { n: 'Sky', l: ['#bfe3ff', '#ffffff'], d: ['#0b2a44', '#151616'] }, { n: 'Mint', l: ['#b8f0d8', '#ffffff'], d: ['#0a3b2e', '#151616'] }, { n: 'Sunset', l: ['#ffd1a8', '#fff3e6'], d: ['#3b1f0f', '#151616'] }, { n: 'Lavender', l: ['#d9ccff', '#ffffff'], d: ['#241a4d', '#151616'] }, { n: 'Rose', l: ['#ffc2d6', '#fff5f8'], d: ['#3d1224', '#151616'] }];
+function applyWall() {
+  const w = LS.get('wall', { i: 0 }), dark = document.documentElement.dataset.theme === 'dark', r = document.documentElement.style, c = w.custom || (w.i ? WALLS[w.i][dark ? 'd' : 'l'] : null);
+  if (c) { r.setProperty('--w1', c[0]); r.setProperty('--w2', c[1]); } else { r.removeProperty('--w1'); r.removeProperty('--w2'); }
+  document.querySelectorAll('#walls div').forEach((d, i) => d.classList.toggle('on', !w.custom && i === (w.i || 0)));
+  $('w1').value = c?.[0] || (dark ? '#151616' : '#eef1f3'); $('w2').value = c?.[1] || (dark ? '#151616' : '#eef1f3');
+}
+WALLS.forEach((w, i) => $('walls').append(h('div', { style: w.l ? `background:linear-gradient(160deg,${w.l[0]},${w.l[1]})` : 'background:var(--msgbg);color:var(--sub)', text: w.n, onclick: () => { LS.set('wall', { i }); applyWall(); } })));
+$('w1').oninput = $('w2').oninput = () => { LS.set('wall', { i: 0, custom: [$('w1').value, $('w2').value] }); applyWall(); };
 /* theme */
-const applyTheme = () => { const t = LS.get('theme', 'dark'); document.documentElement.dataset.theme = t; document.querySelector('meta[name=theme-color]').content = t === 'dark' ? '#0f1010' : '#e6eaed'; $('themeSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === t)); };
+const applyTheme = () => { const t = LS.get('theme', 'dark'); document.documentElement.dataset.theme = t; document.querySelector('meta[name=theme-color]').content = t === 'dark' ? '#0f1010' : '#e6eaed'; $('themeSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === t)); applyWall(); };
 $('themeSeg').querySelectorAll('button').forEach(b => b.onclick = () => { LS.set('theme', b.dataset.v); applyTheme(); });
 applyTheme();
 
 /* screens */
-const show = id => ['boot', 'auth', 'verify', 'onboard', 'app'].forEach(x => $(x).hidden = x !== id);
+const show = id => { ['boot', 'auth', 'verify', 'onboard', 'app'].forEach(x => $(x).hidden = x !== id); $('galaxy').hidden = id !== 'app'; if (id !== 'app') $('aiPanel').hidden = true; };
 
 /* auth UI */
 let mode = 'login', rc = null, conf = null;
@@ -305,7 +377,7 @@ const cidOf = (a, b) => [a, b].sort().join('_');
 const otherOf = c => c.members.find(x => x !== me.uid);
 const isOnline = u => u && Date.now() - (u.lastSeen || 0) < 75000;
 const seenText = u => !u ? '' : isOnline(u) ? 'online' : !u.lastSeen ? 'offline' : 'last seen ' + (dd(u.lastSeen) === 0 ? 'today at ' + fmtT(u.lastSeen) : dd(u.lastSeen) === 1 ? 'yesterday at ' + fmtT(u.lastSeen) : new Date(u.lastSeen).toLocaleDateString([], { day: 'numeric', month: 'short' }));
-const prev = m => m.deleted ? '🚫 This message was deleted' : m.type === 'image' ? '📷 ' + (m.text || 'Photo') : (m.text || '');
+const prev = m => m.deleted ? '🚫 This message was deleted' : m.type === 'image' ? '📷 ' + (m.text || 'Photo') : m.type === 'audio' ? '🎤 Voice message' : m.type === 'call' ? (m.callType === 'video' ? '📹 Video call' : '📞 Voice call') : (m.text || '');
 
 onAuthStateChanged(auth, u => route(u));
 setTimeout(() => { if (!$('boot').hidden) show('auth'); }, 6000);
@@ -334,6 +406,8 @@ $('obForm').onsubmit = async e => {
 function startApp() {
   running = true; show('app'); renderMe(); renderList();
   onSnapshot(query(collection(db, 'chats'), where('members', 'array-contains', me.uid)), s => onChats(s.docs.map(d => ({ ...d.data(), id: d.id }))), warn);
+  onSnapshot(query(collection(db, 'calls'), where('to', '==', me.uid)), s => s.docs.forEach(d => onCallDoc({ ...d.data(), id: d.id })), warn);
+  aiHist = LS.get('aih_' + me.uid, []); aiMode(); aiRender(); aiChips();
   const beat = () => { if (!document.hidden) setDoc(doc(db, 'users', me.uid), { lastSeen: Date.now() }, { merge: true }).catch(() => {}); };
   beat(); setInterval(beat, 30000); setInterval(() => { renderList(); if (active) renderHead(); }, 4000);
 }
@@ -420,7 +494,11 @@ function msgNode(m, first) {
   const b = h('div', { class: 'b' });
   if (m.replyTo) b.append(h('div', { class: 'q' }, h('b', { text: m.replyTo.from === me.uid ? 'You' : users[m.replyTo.from]?.name || '' }), h('span', { text: m.replyTo.text || '' })));
   if (m.type === 'image' && okPhoto(m.image)) b.append(h('img', { class: 'pic', src: m.image, alt: 'Photo', onclick: () => { $('lightbox').firstElementChild.src = m.image; openModal('lightbox'); } }));
-  if (m.text) { const t = h('span'); linkify(t, m.text); b.append(t); }
+  if (m.type === 'audio' && /^data:audio\//.test(m.audio || '')) b.append(h('audio', { controls: true, src: m.audio, preload: 'metadata' }));
+  if (m.type === 'call') {
+    const v = m.callType === 'video', miss = ['missed', 'declined', 'busy'].includes(m.status);
+    b.append(h('div', { class: 'callm', onclick: () => startCall(active.other, m.callType) }, h('i', { text: v ? '📹' : '📞' }), h('div', {}, h('div', { text: (miss && !mine ? 'Missed ' : '') + (v ? 'video' : 'voice') + ' call' }), h('small', { text: m.status === 'ended' ? fmtDur(m.duration || 0) : miss ? (mine ? 'No answer' : 'Tap to call back') : '' }))));
+  } else if (m.text) { const t = h('span'); linkify(t, m.text); b.append(t); }
   const mt = h('span', { class: 'mt' }, fmtT(m.ts)); if (mine) mt.append(h('span', { class: 'tk' + (m.readAt ? ' rd' : ''), style: 'margin:0 0 0 4px', text: m.readAt ? '✓✓' : '✓' })); b.append(mt);
   b.append(h('button', { class: 'chev', 'aria-label': 'Message options', text: '▾', onclick: e => openMenu(e, m, mine) })); row.append(b);
   const rs = {}; Object.entries(m.reactions || {}).forEach(([u, em]) => { if (em) (rs[em] = rs[em] || []).push(u); });
@@ -441,7 +519,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAll()
 const react = (m, em) => setDoc(doc(db, 'chats', active.id, 'messages', m.id), { reactions: { [me.uid]: m.reactions?.[me.uid] === em ? null : em } }, { merge: true }).catch(x => toast(friendly(x)));
 async function delMsg(m) {
   try {
-    await updateDoc(doc(db, 'chats', active.id, 'messages', m.id), { deleted: true, text: '', image: null, replyTo: null, reactions: {} });
+    await updateDoc(doc(db, 'chats', active.id, 'messages', m.id), { deleted: true, text: '', image: null, audio: null, replyTo: null, reactions: {} });
     const c = chats.find(x => x.id === active.id); if (c?.lastMsg?.ts === m.ts) await setDoc(doc(db, 'chats', active.id), { lastMsg: { text: '🚫 This message was deleted', deleted: true } }, { merge: true });
   } catch (x) { toast(friendly(x)); }
 }
@@ -463,7 +541,7 @@ async function sendMsg(payload) {
 }
 function sendText() { const t = $('text').value.trim(); if (!t || !active) return; $('text').value = ''; autosize(); syncSend(); sendMsg({ type: 'text', text: t }); }
 function autosize() { const t = $('text'); t.style.height = '44px'; t.style.height = Math.min(120, t.scrollHeight) + 'px'; }
-const syncSend = () => { $('sendBtn').hidden = !$('text').value.trim(); };
+const syncSend = () => { const has = !!$('text').value.trim(); $('sendBtn').hidden = !has; $('micBtn').hidden = has; };
 $('text').addEventListener('input', () => {
   autosize(); syncSend();
   if (active && Date.now() - lastTyping > 2500 && $('text').value.trim()) { lastTyping = Date.now(); setDoc(doc(db, 'chats', active.id), { typing: { [me.uid]: Date.now() } }, { merge: true }).catch(() => {}); }
@@ -479,6 +557,201 @@ $('file').onchange = () => { const f = $('file').files[0]; $('file').value = '';
 $('text').addEventListener('paste', e => { const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith('image/')); if (f) { e.preventDefault(); sendImage(f); } });
 '😀 😁 😂 🤣 😊 😍 😘 😎 🤔 😅 😭 😡 😴 🥳 🤩 😇 👍 👎 👏 🙌 🙏 💪 👋 🤝 ❤️ 🧡 💛 💚 💙 💜 🖤 💔 🔥 ✨ ⭐ ☀️ 🌈 🎉 🎁 🍕 ☕ 🐶 🐱 🌸 ⚽ 🎮 🎧 🚀 💯 ✅ ❌ 👀'.split(' ').forEach(em => $('emoji').append(h('button', { type: 'button', text: em, onclick: () => { const t = $('text'), s = t.selectionStart ?? t.value.length; t.value = t.value.slice(0, s) + em + t.value.slice(t.selectionEnd ?? s); t.focus(); t.selectionStart = t.selectionEnd = s + em.length; t.dispatchEvent(new Event('input')); } })));
 $('emojiBtn').onclick = e => { e.stopPropagation(); $('emoji').hidden = !$('emoji').hidden; };
+
+/* voice notes */
+const fmtDur = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+let rec = null;
+$('micBtn').onclick = async () => {
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { toast('Voice messages aren\'t supported in this browser.'); return; }
+  let st; try { st = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { toast('Microphone permission is needed.'); return; }
+  const mr = new MediaRecorder(st), ch = []; mr.ondataavailable = e => e.data.size && ch.push(e.data); rec = { mr, send: false, t0: Date.now() };
+  mr.onstop = async () => {
+    st.getTracks().forEach(t => t.stop()); clearInterval(rec.iv); const r = rec; rec = null; $('recBar').hidden = true; $('comp').hidden = false; if (!r.send) return;
+    const mime = (mr.mimeType || 'audio/webm').split(';')[0], d = await new Promise(res => { const f = new FileReader(); f.onload = () => res(f.result); f.readAsDataURL(new Blob(ch, { type: mime })); });
+    if (d.length > 900000) { toast('That voice message is too long.'); return; } sendMsg({ type: 'audio', audio: d.replace(/^data:[^;]*(;codecs=[^;]*)?;/, 'data:' + mime + ';') });
+  };
+  mr.start(); $('comp').hidden = true; $('recBar').hidden = false; $('recT').textContent = '0:00';
+  rec.iv = setInterval(() => { const s = (Date.now() - rec.t0) / 1000; $('recT').textContent = fmtDur(s); if (s >= 60) { rec.send = true; mr.stop(); } }, 250);
+};
+$('recCancel').onclick = () => { if (rec) { rec.send = false; rec.mr.stop(); } };
+$('recSend').onclick = () => { if (rec) { rec.send = true; rec.mr.stop(); } };
+
+/* calls (WebRTC) */
+const ICE = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
+let call = null, incoming = null, ac, ringI; const seenCalls = new Set();
+const beep = (f, t, d) => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = f; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.15, t + .03); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + .02); };
+const stopRing = () => { clearInterval(ringI); ringI = null; try { navigator.vibrate?.(0); } catch {} };
+const ring = k => { stopRing(); try { ac = ac || new AudioContext(); ac.resume(); } catch { return; } const p = () => { const t = ac.currentTime + .02; if (k === 'in') { [0, .45].forEach(o => { beep(659, t + o, .3); beep(880, t + o, .3); }); try { navigator.vibrate?.([300, 150, 300]); } catch {} } else beep(440, t, 1); }; p(); ringI = setInterval(p, k === 'in' ? 2800 : 3200); };
+function makePC() {
+  const pc = new RTCPeerConnection({ iceServers: ICE });
+  pc.ontrack = e => { const rs = call.remote || (call.remote = new MediaStream()); (e.streams[0] ? e.streams[0].getTracks() : [e.track]).forEach(t => { if (!rs.getTracks().includes(t)) rs.addTrack(t); }); $('remoteV').srcObject = rs; $('remoteV').play?.().catch(() => {}); callUI(); };
+  pc.onconnectionstatechange = () => {
+    if (!call) return; const s = pc.connectionState;
+    if (s === 'connected') { if (!call.t0) { call.t0 = Date.now(); stopRing(); call.timer = setInterval(callUI, 1000); } call.rc = false; callUI(); }
+    else if (s === 'disconnected') { call.rc = true; callUI(); }
+    else if (s === 'failed') { toast('The call connection was lost.'); endCall(call.t0 ? 'ended' : 'missed'); }
+  };
+  return pc;
+}
+function cands(id, side, pc) {
+  const q = []; let ready = false, add = c => addDoc(collection(db, 'calls', id, side), c).catch(() => {});
+  pc.onicecandidate = e => { if (!e.candidate) return; const c = e.candidate.toJSON(); ready ? add(c) : q.push(c); };
+  return () => { ready = true; q.splice(0).forEach(add); };
+}
+const flush = () => call.pend.splice(0).forEach(c => call.pc.addIceCandidate(c).catch(() => {}));
+function watchCands(id, side) {
+  call.unsubs.push(onSnapshot(collection(db, 'calls', id, side), s => s.docChanges().forEach(ch => {
+    if (ch.type !== 'added' || !call || call.id !== id) return; const c = ch.doc.data(); if (call.pc.remoteDescription) call.pc.addIceCandidate(c).catch(() => {}); else call.pend.push(c);
+  }), warn));
+}
+function watchCall(id) {
+  call.unsubs.push(onSnapshot(doc(db, 'calls', id), async s => {
+    const d = s.data(); if (!d || !call || call.id !== id) return;
+    if (call.role === 'caller' && d.answer && !call.answered) { call.answered = true; try { await call.pc.setRemoteDescription(d.answer); flush(); } catch (e) { console.warn(e); } call.status = 'Connecting…'; callUI(); }
+    const ps = !!d.sharing?.[call.peer]; if (ps !== call.ps) { call.ps = ps; callUI(); }
+    if (['declined', 'ended', 'missed', 'busy'].includes(d.status)) endCall(d.status, true);
+  }, warn));
+}
+const getMedia = async v => { try { return await navigator.mediaDevices.getUserMedia({ audio: true, video: v ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false }); } catch { toast(v ? 'Allow camera and microphone to make video calls.' : 'Allow the microphone to make calls.'); return null; } };
+async function startCall(peer, type) {
+  if (!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) { toast('Calls aren\'t supported in this browser.'); return; }
+  if (call || incoming) { toast('You\'re already in a call.'); return; }
+  if (!users[peer]) return; if (!active || active.other !== peer) await openChat(peer);
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  call = { id, role: 'caller', type, peer, status: 'Calling…', unsubs: [], pend: [], ps: false }; showCall(); ring('out');
+  const local = await getMedia(type === 'video'); if (!local) { cleanup(); return; }
+  if (!call || call.id !== id) { local.getTracks().forEach(t => t.stop()); return; }
+  call.local = local; call.cam = local.getVideoTracks()[0] || null; callUI();
+  const pc = call.pc = makePC(); local.getTracks().forEach(t => pc.addTrack(t, local)); if (type !== 'video') pc.addTransceiver('video', { direction: 'sendrecv' });
+  const go = cands(id, 'callerCandidates', pc);
+  try {
+    const o = await pc.createOffer(); await pc.setLocalDescription(o);
+    await setDoc(doc(db, 'calls', id), { from: me.uid, to: peer, fromName: profile.name, type, status: 'ringing', ts: Date.now(), offer: { type: o.type, sdp: o.sdp } });
+    go(); watchCall(id); watchCands(id, 'calleeCandidates');
+    call.ringT = setTimeout(() => { if (call && call.id === id && !call.t0) { toast('No answer.'); endCall('missed'); } }, 45000);
+  } catch (e) { console.warn(e); toast(friendly(e)); cleanup(); }
+}
+function onCallDoc(c) {
+  if (c.status === 'ringing' && Date.now() - c.ts < 45000) { if (seenCalls.has(c.id)) return; seenCalls.add(c.id); if (call || incoming) { updateDoc(doc(db, 'calls', c.id), { status: 'busy' }).catch(() => {}); return; } showIncoming(c); }
+  else if (incoming && incoming.id === c.id && c.status !== 'ringing' && c.status !== 'accepted') { hideIncoming(); if (c.status === 'missed' || c.status === 'ended') toast('Missed call from ' + (users[c.from]?.name || c.fromName || 'someone')); }
+}
+function showIncoming(c) {
+  incoming = c; watchUser(c.from); const u = users[c.from] || { uid: c.from, name: c.fromName || 'Someone' };
+  $('inAv').textContent = ''; $('inAv').append(avatar(u, 120)); $('inName').textContent = u.name; $('inType').textContent = c.type === 'video' ? 'Solarr video call…' : 'Solarr voice call…';
+  $('incoming').hidden = false; ring('in'); incoming.timer = setTimeout(() => { if (incoming && incoming.id === c.id) hideIncoming(); }, 45000);
+}
+function hideIncoming() { if (!incoming) return; clearTimeout(incoming.timer); incoming = null; $('incoming').hidden = true; if (!call) stopRing(); }
+$('inDecline').onclick = async () => { if (!incoming) return; const c = incoming; hideIncoming(); stopRing(); try { await updateDoc(doc(db, 'calls', c.id), { status: 'declined' }); } catch {} };
+$('inAccept').onclick = async () => {
+  if (!incoming) return; const c = incoming; hideIncoming(); stopRing();
+  call = { id: c.id, role: 'callee', type: c.type, peer: c.from, status: 'Connecting…', unsubs: [], pend: [], ps: false };
+  if (!users[c.from]) { try { const s = await getDoc(doc(db, 'users', c.from)); if (s.exists()) users[c.from] = { ...s.data(), uid: c.from }; } catch {} }
+  showCall(); await openChat(c.from).catch(() => {});
+  const local = await getMedia(c.type === 'video'); if (!local) { try { await updateDoc(doc(db, 'calls', c.id), { status: 'declined' }); } catch {} cleanup(); return; }
+  if (!call || call.id !== c.id) { local.getTracks().forEach(t => t.stop()); return; }
+  call.local = local; call.cam = local.getVideoTracks()[0] || null; const pc = call.pc = makePC(); local.getTracks().forEach(t => pc.addTrack(t, local));
+  try {
+    await pc.setRemoteDescription(c.offer); flush(); pc.getTransceivers().forEach(t => { if (t.receiver.track.kind === 'video') t.direction = 'sendrecv'; });
+    const go = cands(c.id, 'calleeCandidates', pc), a = await pc.createAnswer(); await pc.setLocalDescription(a);
+    await updateDoc(doc(db, 'calls', c.id), { answer: { type: a.type, sdp: a.sdp }, status: 'accepted' }); go(); watchCall(c.id); watchCands(c.id, 'callerCandidates'); callUI();
+  } catch (e) { console.warn(e); toast('Couldn\'t connect the call.'); endCall('ended'); }
+};
+function showCall() { const u = users[call.peer] || { name: '…' }; $('cAv').textContent = ''; $('cAv').append(avatar(u, 130)); $('cName').textContent = u.name; $('callUI').hidden = false; $('galaxy').hidden = true; callUI(); }
+function callUI() {
+  if (!call) return; const ui = $('callUI'), u = users[call.peer];
+  if (u && $('cName').textContent !== u.name) { $('cAv').textContent = ''; $('cAv').append(avatar(u, 130)); $('cName').textContent = u.name; }
+  ui.classList.toggle('showv', !!((call.type === 'video' || call.ps) && call.remote && call.remote.getVideoTracks().length > 0));
+  $('cStatus').textContent = call.rc ? 'Reconnecting…' : call.t0 ? fmtDur((Date.now() - call.t0) / 1000) : call.status;
+  const lv = $('localV'), src = call.screen || (call.cam ? call.local : null); lv.hidden = !src; if (src && lv.srcObject !== src) lv.srcObject = src; lv.classList.toggle('scr', !!call.screen);
+  $('cMute').classList.toggle('on', !!call.muted); $('cMute').textContent = call.muted ? '🔇' : '🎤';
+  $('cCam').hidden = call.type !== 'video' || !call.cam; $('cCam').classList.toggle('on', !!call.camOff);
+  $('cShare').hidden = !navigator.mediaDevices?.getDisplayMedia; $('cShare').classList.toggle('on', !!call.screen);
+}
+$('cMute').onclick = () => { if (!call?.local) return; call.muted = !call.muted; call.local.getAudioTracks().forEach(t => t.enabled = !call.muted); callUI(); };
+$('cCam').onclick = () => { if (!call?.cam) return; call.camOff = !call.camOff; call.cam.enabled = !call.camOff; callUI(); };
+$('cEnd').onclick = () => endCall(call?.t0 ? 'ended' : 'missed');
+const vsend = () => call.pc.getTransceivers().find(t => t.receiver.track.kind === 'video')?.sender;
+const setShare = on => updateDoc(doc(db, 'calls', call.id), { ['sharing.' + me.uid]: on }).catch(() => {});
+$('cShare').onclick = async () => {
+  if (!call?.pc) return; if (call.screen) { stopShare(); return; }
+  let s; try { s = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }); } catch { return; }
+  const tr = s.getVideoTracks()[0], sd = vsend(); if (!sd) { s.getTracks().forEach(t => t.stop()); toast('Screen sharing isn\'t available in this call.'); return; }
+  await sd.replaceTrack(tr); call.screen = s; tr.onended = stopShare; await setShare(true); callUI();
+};
+async function stopShare() { if (!call?.screen) return; const s = call.screen; call.screen = null; s.getTracks().forEach(t => { t.onended = null; t.stop(); }); try { await vsend()?.replaceTrack(call.cam || null); } catch {} await setShare(false); callUI(); }
+async function endCall(status, remote) {
+  if (!call || call.fin) return; call.fin = true; const c = call; stopRing(); const dur = c.t0 ? (Date.now() - c.t0) / 1000 : 0;
+  if (!remote) { try { await updateDoc(doc(db, 'calls', c.id), { status }); } catch {} }
+  if (c.role === 'caller') {
+    const id = cidOf(me.uid, c.peer), ts = Date.now(), m = { from: me.uid, ts, type: 'call', callType: c.type, status: status === 'ended' && !c.t0 ? 'missed' : status, duration: Math.round(dur) };
+    try { await setDoc(doc(db, 'chats', id), { members: [me.uid, c.peer].sort(), lastMsg: { from: me.uid, ts, text: prev(m) }, unread: { [c.peer]: increment(1) } }, { merge: true }); await addDoc(collection(db, 'chats', id, 'messages'), m); } catch {}
+  }
+  if (remote && status === 'declined') toast('Call declined'); else if (remote && status === 'busy') toast('They\'re on another call');
+  cleanup();
+}
+function cleanup() {
+  const c = call; call = null; if (!c) return; clearInterval(c.timer); clearTimeout(c.ringT); stopRing(); c.unsubs.forEach(f => { try { f(); } catch {} });
+  c.local?.getTracks().forEach(t => t.stop()); c.screen?.getTracks().forEach(t => t.stop()); try { c.pc?.close(); } catch {}
+  $('remoteV').srcObject = null; $('localV').srcObject = null; $('callUI').hidden = true; $('callUI').classList.remove('showv'); $('galaxy').hidden = false;
+}
+$('btnCall').onclick = () => active && startCall(active.other, 'audio');
+$('btnVideo').onclick = () => active && startCall(active.other, 'video');
+
+/* Solarr AI */
+let aiHist = [], aiBusy = false;
+const aiCfg = () => ({ key: '', model: 'claude-sonnet-5-5', ...LS.get('ai', {}) });
+const aiStore = () => LS.set('aih_' + me.uid, aiHist.slice(-40));
+const aiMode = () => { $('aiMode').textContent = aiCfg().key ? 'Claude connected ✦' : 'Local mode · tap ⚙ to connect Claude'; };
+function aiRender() {
+  const b = $('aiMsgs'); b.textContent = '';
+  if (!aiHist.length) b.append(h('div', { class: 'am a', text: `Hi ${profile?.name || ''}! I'm Solarr AI ✦\nTry: "what did I miss?", "call sam", "tell sam: running late", "mint wallpaper" or "15% of 80". Say "help" for more.` }));
+  aiHist.forEach(m => b.append(h('div', { class: 'am ' + (m.role === 'user' ? 'u' : 'a'), text: m.text }))); b.scrollTop = b.scrollHeight;
+}
+const aiAdd = (role, text) => { aiHist.push({ role, text }); aiStore(); aiRender(); };
+const findPerson = q => { q = (q || '').trim().toLowerCase().replace(/^@/, ''); if (!q) return null; const l = Object.values(users).filter(u => u.uid !== me.uid); return l.find(u => u.username === q || u.name.toLowerCase() === q) || l.find(u => (u.username || '').startsWith(q) || u.name.toLowerCase().startsWith(q)); };
+const JOKES = ['Why did the sun skip college? It already had a million degrees. ☀️', 'Why don\'t scientists trust atoms? They make up everything.', 'What do you call a sleeping bull at the beach? A bulldozer. 🏖️'];
+function aiLocal(t) {
+  const s = t.toLowerCase().trim(); let m;
+  if ((m = t.match(/^(?:send|tell|message|text)\s+(?:a\s+message\s+to\s+)?@?([\w ]+?)\s*(?::|-|\bthat\b|\bsaying\b)\s*(.+)$/i))) { const u = findPerson(m[1]); if (!u) return `I couldn't find "${m[1].trim()}" in your chats.`; openChat(u.uid).then(() => { $('text').value = m[2].trim(); sendText(); }); return `Sending to ${u.name}: "${m[2].trim()}" ✓`; }
+  if ((m = t.match(/^(video\s+call|call|ring|phone|voice\s+call)\s+@?([\w ]+)$/i))) { const u = findPerson(m[2]); if (!u) return `I couldn't find "${m[2].trim()}" in your chats.`; startCall(u.uid, /video/i.test(m[1]) ? 'video' : 'audio'); return `Calling ${u.name}… 📞`; }
+  if ((m = t.match(/^(?:open|chat with|talk to|go to)\s+(?:chat\s+with\s+)?@?([\w ]+)$/i))) { const u = findPerson(m[1]); if (!u) return `I couldn't find "${m[1].trim()}".`; openChat(u.uid); return `Opened your chat with ${u.name} 💬`; }
+  if (/unread|what did i miss|missed|catch me up|new messages/.test(s)) { const l = chats.filter(c => (c.unread?.[me.uid] || 0) > 0 && users[otherOf(c)]); return l.length ? 'Unread:\n' + l.map(c => `• ${users[otherOf(c)].name} (${c.unread[me.uid]}): "${(c.lastMsg?.text || '').slice(0, 50)}"`).join('\n') : 'You\'re all caught up ✨'; }
+  if (/who'?s online|who is online|online now/.test(s)) { const l = Object.values(users).filter(u => u.uid !== me.uid && isOnline(u)); return l.length ? 'Online now:\n' + l.map(u => '• ' + u.name).join('\n') : 'Nobody else is online right now.'; }
+  if (/dark mode|night mode/.test(s)) { LS.set('theme', 'dark'); applyTheme(); return 'Dark mode on 🌙'; }
+  if (/light mode|day mode/.test(s)) { LS.set('theme', 'light'); applyTheme(); return 'Light mode on ☀️'; }
+  if (/wallpaper|background/.test(s)) { const i = WALLS.findIndex(w => s.includes(w.n.toLowerCase())); if (i < 0) return 'Pick one: ' + WALLS.map(w => w.n).join(', ') + '. e.g. "mint wallpaper".'; LS.set('wall', { i }); applyWall(); return `Wallpaper: ${WALLS[i].n} 🎨`; }
+  if ((m = s.match(/(\d+(?:\.\d+)?)\s*%\s*of\s*(\d+(?:\.\d+)?)/))) return `${m[1]}% of ${m[2]} = ${+(m[1] * m[2] / 100).toFixed(10)}`;
+  const ex = s.replace(/^(what('| i)?s|calculate|calc|compute|solve)\s*/, '').replace(/[=?]/g, '').replace(/×/g, '*').replace(/÷/g, '/').replace(/\bx\b/g, '*').replace(/\^/g, '**').replace(/,/g, '').trim();
+  if (ex.length < 80 && /^[\d\s+\-*/().%]+$/.test(ex) && /\d/.test(ex) && /[+\-*/%]/.test(ex)) { try { const v = Function('"use strict";return (' + ex + ')')(); if (typeof v === 'number' && isFinite(v)) return `${ex.replace(/\*\*/g, '^')} = ${+v.toFixed(10)}`; } catch {} }
+  if (/\btime\b/.test(s) && s.length < 30) return 'It\'s ' + fmtT(Date.now()) + ' ⏰';
+  if (/\b(date|today)\b/.test(s) && s.length < 30) return new Date().toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  if (/joke|funny/.test(s)) return JOKES[Math.floor(Math.random() * JOKES.length)]; if (/flip|coin/.test(s)) return Math.random() < .5 ? 'Heads! 🪙' : 'Tails! 🪙'; if (/roll|dice/.test(s)) return 'You rolled a ' + (1 + Math.floor(Math.random() * 6)) + ' 🎲';
+  if (/^(help|\/help|what can you do)/.test(s)) return 'I can:\n• "what did I miss?" / "who\'s online?"\n• "call sam" / "video call sam"\n• "open chat with sam"\n• "tell sam: running late"\n• "dark mode" / "mint wallpaper"\n• maths: "15% of 80", "2*(3+4)"\n• time, date, jokes, coin, dice\n• "clear" to wipe this chat\nTap ⚙ to connect Claude for everything else.';
+  return null;
+}
+async function aiAsk() {
+  const c = aiCfg(), ms = aiHist.slice(-20).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text })); while (ms.length && ms[0].role !== 'user') ms.shift();
+  const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: c.model, max_tokens: 1024, system: `You are Solarr AI, a friendly, concise assistant inside the Solarr messaging app, talking to ${profile?.name || 'a user'}. Keep replies under about 150 words, plain text. You cannot see the user's private chats.`, messages: ms }) });
+  const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error?.message || 'Request failed (HTTP ' + r.status + ')');
+  return (d.content || []).map(x => x.text || '').join('').trim() || '(no reply)';
+}
+$('aiForm').onsubmit = async e => {
+  e.preventDefault(); if (aiBusy) return; const t = $('aiIn').value.trim(); if (!t) return; $('aiIn').value = '';
+  if (/^\/?clear( chat)?$/i.test(t)) { aiHist = []; aiStore(); aiRender(); return; }
+  aiAdd('user', t); const l = aiLocal(t); if (l) { setTimeout(() => aiAdd('assistant', l), 200); return; }
+  if (!aiCfg().key) { aiAdd('assistant', /^(hi|hello|hey)\b/i.test(t) ? `Hey ${profile?.name || ''}! ✦ Say "help" to see what I can do.` : 'I\'m in local mode, so I only know app commands, maths and quick fun. Say "help", or tap ⚙ to connect Claude.'); return; }
+  aiBusy = true; $('aiMsgs').append(h('div', { class: 'am a', text: '…' }));
+  try { aiAdd('assistant', await aiAsk()); } catch (x) { aiAdd('assistant', '⚠️ ' + (x.message === 'Failed to fetch' ? 'Couldn\'t reach Anthropic' : x.message) + '. Check your key in ⚙.'); }
+  aiBusy = false;
+};
+function aiChips() { const b = $('aiChips'); b.textContent = ''; ['What did I miss?', 'Who\'s online?', 'Dark mode', 'Tell me a joke', 'Help'].forEach(c => b.append(h('button', { type: 'button', text: c, onclick: () => { $('aiIn').value = c; $('aiForm').requestSubmit(); } }))); }
+$('galaxy').onclick = () => { $('aiPanel').hidden = !$('aiPanel').hidden; if (!$('aiPanel').hidden) { aiMode(); aiRender(); setTimeout(() => $('aiIn').focus(), 60); } };
+$('aiClose').onclick = () => $('aiPanel').hidden = true;
+$('aiGear').onclick = () => { const c = aiCfg(); $('aiKeyIn').value = c.key; $('aiModelIn').value = c.model; $('aiSetMsg').textContent = ''; $('aiChat').style.display = 'none'; $('aiSet').hidden = false; };
+$('aiBack').onclick = () => { $('aiSet').hidden = true; $('aiChat').style.display = 'flex'; };
+$('aiSaveBtn').onclick = () => { const key = $('aiKeyIn').value.trim(), model = $('aiModelIn').value.trim() || 'claude-sonnet-5-5'; if (key && !/^sk-/.test(key)) { $('aiSetMsg').textContent = 'That doesn\'t look like an API key (it starts with sk-).'; return; } LS.set('ai', { key, model }); aiMode(); $('aiSetMsg').textContent = key ? 'Saved. Claude is connected.' : 'Saved.'; };
+$('aiRemove').onclick = () => { LS.set('ai', { key: '', model: $('aiModelIn').value.trim() || 'claude-sonnet-5-5' }); $('aiKeyIn').value = ''; aiMode(); $('aiSetMsg').textContent = 'Key removed.'; };
 </script>
 </body>
 </html>
