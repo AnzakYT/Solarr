@@ -1482,6 +1482,10 @@ document.addEventListener('keydown', e => {
 
 applyTheme(load('solarr_theme', DEFAULT_THEME));
 if (CLOUD_ON) { $('auth').hidden = true; document.querySelector('.card .note').textContent = 'Connected to Firebase: accounts, groups and messages sync across devices.'; }
+if (CLOUD_ON) { const n = document.querySelector('.card .note'); n.after(h('button', { type: 'button', class: 'btn ghost', style: 'margin-top:8px', text: '🔧 Check Firebase connection', onclick: async () => {
+  try { const r = await fetch(cBase() + 'users.json'), d = r.ok ? await r.json() : null;
+    alert('Database: ' + FIREBASE.databaseURL + '\nHTTP status: ' + r.status + '\nAccounts in Firebase: ' + (d ? Object.keys(d).join(', ') : 'none') + '\nAccounts loaded in the app: ' + (Object.keys(users()).join(', ') || 'none'));
+  } catch (e) { alert('Could not reach Firebase: ' + e.message); } } })); }
 (CLOUD_ON ? cloudInit() : Promise.resolve()).then(() => {
   ensureBot();
   const saved = localStorage.getItem('solarr_session') || sessionStorage.getItem('solarr_session');
