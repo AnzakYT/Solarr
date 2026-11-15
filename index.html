@@ -503,16 +503,21 @@ function cRebuild(k) {
   MEM[k] = JSON.stringify(v);
   if (old !== MEM[k]) handleDataChange(k, old, MEM[k]);
 }
+let cloudPullUsers = () => Promise.resolve();
 function cloudInit() {
+  const names = [...CLOUD_KEYS], live = {};
+  const pull = k => fetch(cBase() + k.slice(7) + '.json').then(r => r.ok ? r.json() : (cErr(r.status), undefined)).then(d => { if (d !== undefined) { cloud[k] = d || {}; cRebuild(k); } }).catch(() => cErr(0));
+  cloudPullUsers = () => pull('solarr_users');
   return new Promise(res => {
-    let left = CLOUD_KEYS.size; setTimeout(res, 7000);
-    CLOUD_KEYS.forEach(k => {
-      let first = true; const done = () => { if (first) { first = false; if (!--left) res(); } };
-      const es = new EventSource(cBase() + k.slice(7) + '.json');
-      es.addEventListener('put', e => { const d = JSON.parse(e.data); cApply(k, d.path, d.data); cRebuild(k); done(); });
+    setTimeout(res, 7000);
+    Promise.all(names.map(pull)).then(() => res());
+    names.forEach(k => {
+      const es = new EventSource(cBase() + k.slice(7) + '.json'); live[k] = es;
+      es.addEventListener('put', e => { const d = JSON.parse(e.data); cApply(k, d.path, d.data); cRebuild(k); });
       es.addEventListener('patch', e => { const d = JSON.parse(e.data); for (const [kk, val] of Object.entries(d.data || {})) cApply(k, d.path.replace(/\/$/, '') + '/' + kk, val); cRebuild(k); });
-      es.onerror = () => { if (first) cErr(0); done(); };
     });
+    /* safety net: if a live stream isn't open, fall back to polling that collection */
+    setInterval(() => names.forEach(k => { if (live[k].readyState !== 1) pull(k); }), 5000);
   });
 }
 const groups = () => load('solarr_groups', {});
@@ -707,6 +712,7 @@ $('authForm').onsubmit = async e => {
   if (!/^[a-z0-9_]{3,20}$/.test(u)) { err.textContent = 'Username must be 3–20 letters, numbers or underscores.'; return; }
   $('authBtn').disabled = true;
   try {
+    if (CLOUD_ON && mode === 'login' && !users()[u]) await cloudPullUsers();
     const U = users();
     if (mode === 'signup') {
       if (U[u] || ['solarr', 'admin', 'support', 'system'].includes(u)) { err.textContent = 'That username is taken.'; return; }
@@ -719,8 +725,19 @@ $('authForm').onsubmit = async e => {
       M.push({ id: uid(), from: BOT, to: u, ts: now - 1000, text: 'Tap ＋ to add friends by username. You can reply, react, edit, delete and send photos. Say "help" to see what I can do!' });
       save('solarr_msgs', M);
     } else {
-      const a = U[u];
-      if (!a || !a.hash || a.hash !== await hashPw(p, a.salt)) { err.textContent = 'Incorrect username or password.'; return; }
+      let a = U[u];
+      if (!a && CLOUD_ON) { /* move an account made before Firebase was connected (it only exists in this browser) into the cloud */
+        try {
+          const old = JSON.parse(localStorage.getItem('solarr_users') || '{}')[u];
+          if (old && old.hash && old.hash === await hashPw(p, old.salt)) {
+            old.contacts = old.contacts || [BOT]; old.cleared = old.cleared || {}; U[u] = a = old; saveUsers(U);
+            const have = new Set(allMsgs().map(m => m.id)), mine = JSON.parse(localStorage.getItem('solarr_msgs') || '[]').filter(m => (m.from === u || m.to === u) && !have.has(m.id));
+            if (mine.length) save('solarr_msgs', [...allMsgs(), ...mine]);
+            toast('Your old account was moved to the cloud.');
+          }
+        } catch {}
+      }
+      if (!a || !a.hash || a.hash !== await hashPw(p, a.salt)) { err.textContent = 'Incorrect username or password.' + (CLOUD_ON && !a ? ' If you made this account before Firebase was connected, log in once on the same browser and link you first used it on, or sign up again here.' : ''); return; }
     }
     $('pass').value = '';
     login(u, $('remember').checked);
@@ -1007,7 +1024,7 @@ function showProfile(u) {
 }
 
 /* ---------- new chat ---------- */
-function openAdd() { $('addUser').value = ''; $('addErr').textContent = ''; renderSuggest(); openModal('addModal'); setTimeout(() => $('addUser').focus(), 60); }
+function openAdd() { $('addUser').value = ''; $('addErr').textContent = ''; renderSuggest(); openModal('addModal'); setTimeout(() => $('addUser').focus(), 60); cloudPullUsers().then(renderSuggest); }
 function renderSuggest() {
   const U = users(), q = $('addUser').value.trim().toLowerCase().replace(/^@/, ''), mine = new Set(U[me].contacts || []), box = $('suggest');
   box.textContent = '';
@@ -1024,11 +1041,12 @@ function startChatWith(u) {
 }
 $('newChat').onclick = openAdd;
 $('addUser').oninput = renderSuggest;
-$('addForm').onsubmit = e => {
+$('addForm').onsubmit = async e => {
   e.preventDefault();
   const u = $('addUser').value.trim().toLowerCase().replace(/^@/, '');
   if (!u) return;
   if (u === me) { $('addErr').textContent = 'That\'s you! 😄'; return; }
+  if (!users()[u]) await cloudPullUsers();
   if (!users()[u]) { $('addErr').textContent = (CLOUD_ON ? `No account "${u}" in the database yet. They need to sign up on this same site first.` : `No one is signed up as "${u}" on this browser.`); return; }
   startChatWith(u);
 };
