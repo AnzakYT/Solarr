@@ -231,6 +231,23 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
   .back{display:grid}
   .bubble{max-width:84%}
 }
+/* refined, curvier look */
+input[type=tel],select{width:100%;background:var(--glass2);color:inherit;border:1px solid var(--line);border-radius:18px;padding:13px 16px;outline:none}
+input[type=text],input[type=password],textarea{border-radius:18px;padding:13px 16px}
+.sheet{border-radius:30px;padding:26px}
+.btn{border-radius:999px;padding:13px 22px;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.btn.ghost{box-shadow:none}
+.tabs,.tabs button{border-radius:999px}
+.item{border-radius:18px}
+.icon{border-radius:50%}
+.bubble{border-radius:22px}
+.rimg{border-radius:18px}
+.pop,.tools{border-radius:24px}
+.tile{border-radius:24px}
+#text{border-radius:24px}
+.av{box-shadow:0 2px 8px rgba(0,0,0,.18)}
+#dialPad button{border:1px solid var(--line);border-radius:999px;height:58px;background:var(--glass2);color:var(--text);font-size:1.3rem;font-weight:700}
+#dialPad button:active{transform:scale(.94)}
 </style>
 </head>
 <body>
@@ -277,6 +294,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
       <div class="sidehead">
         <div id="meAv" style="cursor:pointer"></div>
         <div class="who" id="meWho"><b id="meName"></b><span class="muted small" id="meUser"></span></div>
+        <button class="icon" id="dialBtn" title="Dial a number">⌨️</button>
         <button class="icon" id="newGroup" title="New group">👥</button>
         <button class="icon" id="newChat" title="New chat">＋</button>
         <button class="icon" id="openSettings" title="Settings">⚙️</button>
@@ -345,6 +363,11 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
   <h4>Profile</h4>
   <div class="field"><label>Display name</label><input type="text" id="setName" maxlength="30"></div>
   <div class="field"><label>Bio</label><input type="text" id="setBio" maxlength="90"></div>
+  <div class="field"><label>Phone number</label><div style="display:flex;gap:8px"><select id="setCC" style="max-width:120px"></select><input type="tel" id="setPhone" placeholder="Mobile number" inputmode="tel"></div></div>
+  <div class="field" style="margin-top:-6px"><div id="phoneStat" class="muted small"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center"><button class="btn ghost" id="phoneSend" type="button">Send code</button><input type="text" id="phoneCode" placeholder="6-digit code" inputmode="numeric" maxlength="6" hidden style="max-width:150px"><button class="btn" id="phoneConfirm" type="button" hidden>Verify</button></div>
+    <div id="recaptcha"></div></div>
+  <div class="field"><label>Profile picture (PNG or JPG)</label><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div id="setPhotoPrev"></div><button class="btn ghost" id="setPhotoBtn" type="button">Change photo</button><button class="btn ghost" id="setPhotoDel" type="button">Remove</button><input type="file" id="setPhotoFile" accept="image/png,image/jpeg" hidden></div></div>
   <div class="field"><label>Avatar colour</label><div class="avcolors" id="setColors"></div></div>
   <button class="btn block" id="saveProfile">Save profile</button>
 
@@ -380,6 +403,15 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
   <button class="btn ghost block" id="themeReset2" type="button">Reset to default</button>
 </div></div>
 
+<div class="modal" id="dialModal" hidden><div class="sheet">
+  <div class="head"><h3>Dial</h3><button class="icon" data-close>✕</button></div>
+  <div class="field"><select id="dialCC"></select></div>
+  <input type="tel" id="dialNum" placeholder="Phone number" autocomplete="off" inputmode="tel" style="font-size:1.4rem;text-align:center">
+  <div id="dialPad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0"></div>
+  <div class="row2"><button class="btn" id="dialCall" type="button">📞 Call</button><button class="btn ghost" id="dialVid" type="button">🎥 Video</button></div>
+  <button class="btn ghost block" id="dialMsg" type="button" style="margin-top:8px">💬 Message</button>
+  <p class="muted small" style="margin-top:10px;text-align:center">Reaches Solarr accounts that saved this number, not normal phone lines.</p>
+</div></div>
 <div class="modal" id="gifModal" hidden><div class="sheet">
   <div class="head"><h3>GIFs</h3><button class="icon" data-close>✕</button></div>
   <div class="field"><input type="text" id="gifQ" placeholder="Search GIFs…" autocomplete="off"></div>
@@ -632,7 +664,8 @@ document.querySelectorAll('.modal').forEach(m => {
 /* ---------- avatars ---------- */
 function avatar(u, size = 40, dot = false) {
   const c = COLORS[(u.color ?? 0) % COLORS.length];
-  const a = h('div', { class: 'av', style: `width:${size}px;height:${size}px;font-size:${Math.round(size * .42)}px;background:linear-gradient(135deg,${c[0]},${c[1]})`, text: u.bot ? '☀' : u.members ? '👥' : (u.name || u.username || '?')[0].toUpperCase() });
+  const a = h('div', { class: 'av', style: `width:${size}px;height:${size}px;font-size:${Math.round(size * .42)}px;background:linear-gradient(135deg,${c[0]},${c[1]})`, text: u.photo ? '' : u.bot ? '☀' : u.members ? '👥' : (u.name || u.username || '?')[0].toUpperCase() });
+  if (u.photo && /^data:image\/(jpeg|png);base64,/.test(u.photo)) { a.style.backgroundImage = `url("${u.photo}")`; a.style.backgroundSize = 'cover'; a.style.backgroundPosition = 'center'; }
   if (dot && isOnline(u.username)) a.append(h('i', { class: 'dot' }));
   return a;
 }
@@ -820,7 +853,7 @@ function renderHead() {
   if (grp && (!usr || !usr.members.includes(me))) { current = null; $('thread').hidden = true; $('emptyState').hidden = false; $('shell').classList.remove('chatopen'); renderList(); return; }
   if (!usr) return;
   $('headAv').textContent = ''; $('headAv').append(avatar(usr, 42, true));
-  $('headName').textContent = usr.name;
+  $('headName').textContent = usr.name + (isVerified(usr) ? ' ✓' : '');
   const typ = isTyping(current), st = $('headStatus');
   st.textContent = typ ? 'typing…' : grp ? usr.members.map(x => x === me ? 'You' : (users()[x]?.name || x).split(' ')[0]).join(', ') : lastSeen(current);
   st.classList.toggle('on', typ || isOnline(current));
@@ -1028,7 +1061,7 @@ function openAdd() { $('addUser').value = ''; $('addErr').textContent = ''; rend
 function renderSuggest() {
   const U = users(), q = $('addUser').value.trim().toLowerCase().replace(/^@/, ''), mine = new Set(U[me].contacts || []), box = $('suggest');
   box.textContent = '';
-  const list = Object.values(U).filter(x => x.username !== me && (!q || x.username.includes(q) || x.name.toLowerCase().includes(q)));
+  const list = Object.values(U).filter(x => x.username !== me && (!q || x.username.includes(q) || x.name.toLowerCase().includes(q) || (q.replace(/\D/g, '').length >= 3 && (x.phone || '').replace(/\D/g, '').includes(q.replace(/\D/g, '')))));
   if (!list.length) { box.append(h('div', { class: 'listempty', text: 'Nobody found.' })); return; }
   list.slice(0, 40).forEach(x => box.append(h('div', { class: 'item', onclick: () => startChatWith(x.username) },
     avatar(x, 40, true), h('div', { class: 't' }, h('div', { class: 'n', text: x.name }), h('div', { class: 'p', text: '@' + x.username + (mine.has(x.username) ? ' · in your chats' : '') })))));
@@ -1060,12 +1093,17 @@ function openSettings() {
   $('setSound').checked = prefs().sound; $('pwOld').value = $('pwNew').value = ''; $('pwErr').textContent = '';
   const box = $('setColors'); box.textContent = '';
   COLORS.forEach((c, i) => box.append(h('div', { class: 'cs' + (i === pickedColor ? ' on' : ''), style: `background:linear-gradient(135deg,${c[0]},${c[1]})`, onclick: () => { pickedColor = i; [...box.children].forEach((x, j) => x.classList.toggle('on', j === i)); } })));
+  const ph = usr.phone || '', cc = CC.map(x => x[1]).sort((a, b) => b.length - a.length).find(c => ph.startsWith('+' + c));
+  $('setCC').value = cc || '61'; $('setPhone').value = cc ? ph.slice(cc.length + 1) : ''; refreshPhoto(); phoneStatus(); pullVerified().then(phoneStatus);
   openModal('settingsModal');
 }
 $('openSettings').onclick = $('meAv').onclick = $('meWho').onclick = openSettings;
 $('saveProfile').onclick = () => {
   const U = users(), n = $('setName').value.trim();
   if (!n) { toast('Display name can\'t be empty.'); return; }
+  const ph = $('setPhone').value.trim(); let phone = '';
+  if (ph) { phone = normPhone($('setCC').value, ph); if (!phone) { toast('Enter a valid phone number.'); return; } if (Object.values(U).some(x => x.username !== me && x.phone === phone && isVerified(x))) { toast('That number is already used by another account.'); return; } }
+  U[me].phone = phone || undefined;
   U[me].name = n.slice(0, 30); U[me].bio = $('setBio').value.trim().slice(0, 90); U[me].color = pickedColor;
   if (saveUsers(U)) { toast('Profile saved'); renderMe(); renderAll(); }
 };
@@ -1090,6 +1128,71 @@ $('deleteBtn').onclick = () => {
   saveUsers(U); save('solarr_msgs', allMsgs().filter(m => m.from !== me && m.to !== me));
   const Gs = groups(); Object.values(Gs).forEach(g => { g.members = g.members.filter(x => x !== me); g.admins = g.admins.filter(x => x !== me); if (g.owner === me) g.owner = g.members[0]; if (g.members.length && !g.admins.length) g.admins = [g.members[0]]; if (!g.members.length) delete Gs[g.id]; });
   save('solarr_groups', Gs); logout();
+};
+
+/* ---------- phone numbers, profile photo, dial pad ---------- */
+const CC = [['🇦🇺 Australia','61'],['🇺🇸 US/Canada','1'],['🇬🇧 UK','44'],['🇮🇳 India','91'],['🇵🇭 Philippines','63'],['🇸🇬 Singapore','65'],['🇲🇾 Malaysia','60'],['🇮🇩 Indonesia','62'],['🇳🇿 New Zealand','64'],['🇯🇵 Japan','81'],['🇰🇷 South Korea','82'],['🇨🇳 China','86'],['🇩🇪 Germany','49'],['🇫🇷 France','33'],['🇪🇸 Spain','34'],['🇮🇹 Italy','39'],['🇧🇷 Brazil','55'],['🇲🇽 Mexico','52'],['🇳🇬 Nigeria','234'],['🇿🇦 South Africa','27'],['🇦🇪 UAE','971'],['🇵🇰 Pakistan','92'],['🇧🇩 Bangladesh','880'],['🇹🇭 Thailand','66'],['🇻🇳 Vietnam','84']];
+const normPhone = (cc, n) => { n = String(n).trim(); const d = n.replace(/\D/g, ''), full = n.startsWith('+') ? d : cc + d.replace(/^0+/, ''); return full.length >= 8 && full.length <= 15 ? '+' + full : ''; };
+function fillCC(sel) { CC.forEach(([n, c]) => sel.append(h('option', { value: c, title: n, text: n.split(' ')[0] + ' +' + c }))); sel.value = '61'; }
+fillCC($('dialCC')); fillCC($('setCC'));
+function refreshPhoto() { $('setPhotoPrev').textContent = ''; $('setPhotoPrev').append(avatar(users()[me], 56)); renderMe(); renderAll(); }
+$('setPhotoBtn').onclick = () => $('setPhotoFile').click();
+$('setPhotoFile').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (!/^image\/(png|jpe?g)$/.test(f.type)) { toast('Please choose a PNG or JPG image.'); return; }
+  const url = URL.createObjectURL(f), img = new Image();
+  img.onload = () => {
+    const S = 256, c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d'), m = Math.min(img.width, img.height);
+    x.fillStyle = '#fff'; x.fillRect(0, 0, S, S); x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S); URL.revokeObjectURL(url);
+    const U = users(); U[me].photo = c.toDataURL('image/jpeg', .85); if (saveUsers(U)) { toast('Profile picture updated'); refreshPhoto(); }
+  };
+  img.onerror = () => toast('Couldn\'t read that image.'); img.src = url;
+};
+$('setPhotoDel').onclick = () => { const U = users(); delete U[me].photo; if (saveUsers(U)) { toast('Photo removed'); refreshPhoto(); } };
+['1','2','3','4','5','6','7','8','9','*','0','⌫'].forEach(k => $('dialPad').append(h('button', { type: 'button', text: k, onclick: () => { const i = $('dialNum'); i.value = k === '⌫' ? i.value.slice(0, -1) : i.value + k; } })));
+$('dialBtn').onclick = () => { $('dialNum').value = ''; openModal('dialModal'); };
+async function dialTo(mode) {
+  const num = normPhone($('dialCC').value, $('dialNum').value); if (!num) { toast('Enter a valid phone number.'); return; }
+  await Promise.all([cloudPullUsers(), pullVerified()]);
+  const t = Object.values(users()).filter(x => x.phone === num && x.username !== me).sort((a, b) => isVerified(b) - isVerified(a))[0];
+  if (!t) { toast(`No Solarr user has ${num} saved. Calls only reach Solarr accounts, not normal phone lines.`); return; }
+  closeModal('dialModal'); openChat(t.username);
+  if (mode !== 'chat') setTimeout(() => startCall(mode === 'video'), 250);
+}
+$('dialCall').onclick = () => dialTo('voice'); $('dialVid').onclick = () => dialTo('video'); $('dialMsg').onclick = () => dialTo('chat');
+
+/* ---------- SMS verification (Firebase Authentication, phone sign-in) ---------- */
+let VERIFIED = {}, confRes = null, rv = null;
+const phoneDigits = x => (x || '').replace(/\D/g, '');
+const isVerified = u => !!u && !!u.phone && VERIFIED[phoneDigits(u.phone)]?.username === u.username;
+const pullVerified = () => CLOUD_ON ? fetch(cBase() + 'verified.json').then(x => x.ok ? x.json() : null).then(d => { VERIFIED = d || {}; }).catch(() => {}) : Promise.resolve();
+function phoneStatus() {
+  const u = users()[me]; if (!u) return;
+  $('phoneStat').textContent = !u.phone ? 'Save a phone number first, then verify it.' : isVerified(u) ? '✓ Verified ' + u.phone : 'Not verified: ' + u.phone;
+  $('phoneSend').hidden = !u.phone || isVerified(u);
+}
+const loadScript = src => new Promise((ok, no) => { const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = no; document.head.append(el); });
+async function fbAuth() {
+  if (!window.firebase) { await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js'); await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js'); }
+  if (!firebase.apps.length) firebase.initializeApp({ apiKey: FIREBASE.apiKey, authDomain: 'solarr-92455.firebaseapp.com', projectId: 'solarr-92455' });
+  return firebase.auth();
+}
+$('phoneSend').onclick = async () => {
+  if (!CLOUD_ON) { toast('Verification needs Firebase cloud mode.'); return; }
+  const u = users()[me]; if (!u.phone) return;
+  try {
+    const auth = await fbAuth(); rv = rv || new firebase.auth.RecaptchaVerifier('recaptcha', { size: 'invisible' });
+    confRes = await auth.signInWithPhoneNumber(u.phone, rv);
+    $('phoneCode').hidden = $('phoneConfirm').hidden = false; toast('Code sent. Check your messages.');
+  } catch (e) { toast('Couldn\'t send code: ' + (e.code || e.message)); try { rv?.clear(); } catch {} rv = null; }
+};
+$('phoneConfirm').onclick = async () => {
+  try {
+    const cred = await confRes.confirm($('phoneCode').value.trim()), tok = await cred.user.getIdToken(), d = phoneDigits(cred.user.phoneNumber);
+    const res = await fetch(`${cBase()}verified/${d}.json?auth=${tok}`, { method: 'PUT', body: JSON.stringify({ username: me, ts: { '.sv': 'timestamp' } }) });
+    if (!res.ok) { toast('Code accepted, but saving failed (HTTP ' + res.status + '). Update the database rules first.'); return; }
+    await pullVerified(); $('phoneCode').value = ''; $('phoneCode').hidden = $('phoneConfirm').hidden = true; phoneStatus(); renderAll(); toast('Phone verified ✓');
+  } catch (e) { toast('Wrong or expired code.'); }
 };
 
 /* ---------- GIFs ---------- */
@@ -1435,7 +1538,7 @@ function start() {
   ensureBot();
   $('auth').hidden = true; $('app').hidden = false; $('galaxy').hidden = false; aiLoad(); aiMode(); aiRender();
   current = null; $('thread').hidden = true; $('emptyState').hidden = false; $('shell').classList.remove('chatopen');
-  beat(); renderMe(); renderAll(); listenSig();
+  beat(); renderMe(); renderAll(); listenSig(); pullVerified().then(renderAll);
   if (!timersOn) {
     timersOn = true;
     setInterval(() => { if (me) beat(); }, 10000);
