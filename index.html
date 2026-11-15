@@ -492,19 +492,21 @@ const prefs = () => ({ sound: true, ...load('solarr_prefs', {}) });
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const pick = a => a[Math.floor(Math.random() * a.length)];
 /* ---------- Firebase sync (Realtime Database over REST + streaming; no SDK) ---------- */
-const cloud = {}; let cWarned = false;
+const cloud = {}; let cWarned = false, cLast = 0;
 const cBase = () => FIREBASE.databaseURL.replace(/\/$/, '') + '/solarr/';
 function cErr(st) { if (cWarned) return; cWarned = true; toast('Firebase problem' + (st ? ' (HTTP ' + st + ')' : '') + ': check databaseURL and that the database rules allow read/write.'); }
 const cReq = (method, path, body) => fetch(cBase() + path + '.json', { method, body: body === undefined ? undefined : JSON.stringify(body) }).then(r => { if (!r.ok) cErr(r.status); }).catch(() => cErr(0));
 function cloudPush(k, old, v) {
+  cLast = Date.now();
   const name = k.slice(7), toMap = x => k === 'solarr_msgs' ? Object.fromEntries((x || []).map(m => [m.id, m])) : (x || {});
   const o = toMap(old), n = toMap(v); cloud[k] = JSON.parse(JSON.stringify(n));
   for (const id of Object.keys(n)) {
     const a = n[id], b = o[id] || {}, f = {};
+    if (a === null || typeof a !== 'object') { if (JSON.stringify(a) !== JSON.stringify(o[id])) cReq('PUT', name + '/' + encodeURIComponent(id), a); continue; }
     for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) f[key] = a[key] ?? null;
-    if (Object.keys(f).length) cReq('PATCH', name + '/' + id, f);
+    if (Object.keys(f).length) cReq('PATCH', name + '/' + encodeURIComponent(id), f);
   }
-  for (const id of Object.keys(o)) if (!(id in n)) cReq('DELETE', name + '/' + id);
+  for (const id of Object.keys(o)) if (!(id in n)) cReq('DELETE', name + '/' + encodeURIComponent(id));
 }
 function cApply(k, path, data) {
   const seg = path.split('/').filter(Boolean);
@@ -535,7 +537,7 @@ function cloudInit() {
       es.addEventListener('patch', e => { const d = JSON.parse(e.data); for (const [kk, val] of Object.entries(d.data || {})) cApply(k, d.path.replace(/\/$/, '') + '/' + kk, val); cRebuild(k); });
     });
     /* safety net: if a live stream isn't open, fall back to polling that collection */
-    setInterval(() => names.forEach(k => { if (live[k].readyState !== 1) pull(k); }), 5000);
+    setInterval(() => names.forEach(k => { if (live[k].readyState !== 1 && Date.now() - cLast > 3000) pull(k); }), 5000);
   });
 }
 const groups = () => load('solarr_groups', {});
@@ -1549,8 +1551,8 @@ document.addEventListener('keydown', e => {
 applyTheme(load('solarr_theme', DEFAULT_THEME));
 if (CLOUD_ON) { $('auth').hidden = true; document.querySelector('.card .note').textContent = 'Connected to Firebase: accounts, groups and messages sync across devices.'; }
 if (CLOUD_ON) { const n = document.querySelector('.card .note'); n.after(h('button', { type: 'button', class: 'btn ghost', style: 'margin-top:8px', text: '🔧 Check Firebase connection', onclick: async () => {
-  try { const r = await fetch(cBase() + 'users.json'), d = r.ok ? await r.json() : null;
-    alert('Database: ' + FIREBASE.databaseURL + '\nHTTP status: ' + r.status + '\nAccounts in Firebase: ' + (d ? Object.keys(d).join(', ') : 'none') + '\nAccounts loaded in the app: ' + (Object.keys(users()).join(', ') || 'none'));
+  try { const r = await fetch(cBase() + 'users.json'), d = r.ok ? await r.json() : null, w = await fetch(cBase() + '_test.json', { method: 'PUT', body: '"ok"' }); fetch(cBase() + '_test.json', { method: 'DELETE' });
+    alert('Write test: ' + (w.ok ? 'OK' : 'FAILED, HTTP ' + w.status) + '\nDatabase: ' + FIREBASE.databaseURL + '\nHTTP status: ' + r.status + '\nAccounts in Firebase: ' + (d ? Object.keys(d).join(', ') : 'none') + '\nAccounts loaded in the app: ' + (Object.keys(users()).join(', ') || 'none'));
   } catch (e) { alert('Could not reach Firebase: ' + e.message); } } })); }
 (CLOUD_ON ? cloudInit() : Promise.resolve()).then(() => {
   ensureBot();
