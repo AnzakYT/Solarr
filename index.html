@@ -434,8 +434,8 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
    Paste your Firebase details to get REAL accounts and live messaging between devices.
    See README.md for the 5-minute setup and the database rules. */
 const FIREBASE = Object.assign({
-  apiKey: 'AIzaSyAqM9YgaLIMvCYy909A0RI68Vn_AXlolHA',        // e.g. 'AIzaSy...'
-  databaseURL: 'https://solarr-92455-default-rtdb.asia-southeast1.firebasedatabase.app',   // e.g. 'https://your-project-default-rtdb.firebaseio.com'
+  apiKey: 'AIzaSyAqM9YgaLIMvCYy909A0RI68Vn_AXlolHA',
+  databaseURL: 'https://solarr-92455-default-rtdb.asia-southeast1.firebasedatabase.app',
   authHost: 'https://identitytoolkit.googleapis.com',
   tokenHost: 'https://securetoken.googleapis.com'
 }, window.SOLARR_FIREBASE || {});
@@ -1156,22 +1156,22 @@ function addToGroup(id) {
 /* ---------- calls (WebRTC). Signalling goes through localStorage, so calls work between tabs of THIS browser.
    Calls across devices need a real signalling server (e.g. the Firebase cloud mode). ---------- */
 /* For calls on mobile data / strict networks add a TURN server: window.SOLARR_TURN = [{ urls:'turn:host:3478', username:'..', credential:'..' }] */
-const RTC = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, ...(window.SOLARR_TURN || [])] };
+const RTC = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }, ...(window.SOLARR_TURN || [])] };
 let call = null, incoming = null, ringT = null, localStream = null;
 const seenSig = new Set();
 let sigES = null;
 function listenSig() {
   if (sigES || !CLOUD_ON) return;
   sigES = new EventSource(cBase() + 'sig/' + me + '.json');
-  const take = (k, s) => {
+  const take = (k, s, live) => {
     if (!s || !s.type || seenSig.has(k)) return; seenSig.add(k);
     fetch(cBase() + 'sig/' + me + '/' + k + '.json', { method: 'DELETE' }).catch(() => {});
-    if (Date.now() - s.ts < 60000) handleSig(s);
+    if (live) handleSig(s); /* the backlog from before this page opened is stale, so it's dropped */
   };
   const eat = e => {
     const d = JSON.parse(e.data); if (!d.data) return;
-    if (d.path === '/') Object.entries(d.data).forEach(([k, s]) => take(k, s));
-    else { const seg = d.path.split('/').filter(Boolean); if (seg.length === 1) take(seg[0], d.data); }
+    if (d.path === '/') Object.entries(d.data).forEach(([k, s]) => take(k, s, e.type === 'patch'));
+    else { const seg = d.path.split('/').filter(Boolean); if (seg.length === 1) take(seg[0], d.data, true); }
   };
   sigES.addEventListener('put', eat); sigES.addEventListener('patch', eat);
 }
@@ -1191,11 +1191,11 @@ async function getMedia(video) {
 function addTile(u, stream, local) {
   let t = $('callGrid').querySelector(`[data-u="${u}"]`);
   if (!t) {
-    const x = users()[u] || { name: u, color: 0 }, v = h('video', { autoplay: true, playsinline: true }); v.muted = !!local;
+    const x = users()[u] || { name: u, color: 0 }, v = h('video', { autoplay: true, playsinline: true }); v.muted = !!local; v.autoplay = true; v.playsInline = true;
     t = h('div', { class: 'tile', 'data-u': u }, avatar(x, 72), v, h('div', { class: 'tn', text: local ? 'You' : x.name })); $('callGrid').append(t);
   }
-  const v = t.querySelector('video'); if (v.srcObject !== stream) v.srcObject = stream;
-  v.style.display = stream.getVideoTracks().length ? '' : 'none';
+  const v = t.querySelector('video'); if (v.srcObject !== stream) { v.srcObject = stream; v.play?.().catch(() => {}); }
+  v.style.opacity = stream.getVideoTracks().length ? '' : '0';
 }
 function openCallUI() {
   const g = isGroup(call.chat) ? G(call.chat) : users()[call.chat];
@@ -1222,7 +1222,7 @@ function peer(u) {
   localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
   pc.onicecandidate = e => e.candidate && sig(u, 'ice', { callId: call.id, cand: e.candidate });
   pc.ontrack = e => addTile(u, e.streams[0]);
-  pc.onconnectionstatechange = () => { if (!call) return; if (pc.connectionState === 'connected' && !call.start) call.start = Date.now(); if (['failed', 'closed'].includes(pc.connectionState)) dropPeer(u); };
+  pc.onconnectionstatechange = () => { if (!call) return; if (pc.connectionState === 'connecting' && !call.start) $('callTime').textContent = 'Connecting…'; if (pc.connectionState === 'connected' && !call.start) call.start = Date.now(); if (pc.connectionState === 'failed') toast('Call connection failed. Strict networks may need a TURN server.'); if (['failed', 'closed'].includes(pc.connectionState)) dropPeer(u); };
   return pc;
 }
 function dropPeer(u) {
@@ -1276,6 +1276,7 @@ function showIncoming() {
   const inc = incoming, g = isGroup(inc.chat) ? G(inc.chat) : null, u = users()[inc.from] || { name: inc.from, color: 0 };
   $('incAv').textContent = ''; $('incAv').append(avatar(g || u, 84)); $('incName').textContent = g ? g.name : u.name;
   $('incKind').textContent = (g ? u.name + ' · ' : '') + 'Incoming ' + (inc.video ? 'video' : 'voice') + ' call…';
+  try { if (document.hidden && Notification.permission === 'granted') new Notification('Incoming ' + (inc.video ? 'video' : 'voice') + ' call', { body: g ? g.name : u.name }); } catch {}
   $('incOv').hidden = false; clearInterval(ringT); ringT = setInterval(beep, 1600); beep();
   setTimeout(() => { if (incoming === inc) hideIncoming(); }, 45000);
 }
