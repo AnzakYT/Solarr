@@ -28,6 +28,7 @@ body{font-family:"Segoe UI",Helvetica Neue,Helvetica,Lucida Grande,Arial,Ubuntu,
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0}
 a{color:#027eb5}
+:root[data-theme=dark] a{color:#8cd0ff}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:rgba(120,130,140,.35)}
 .grow{flex:1}.sub{color:var(--sub)}
 .ic{display:inline-flex;width:24px;height:24px}.ic svg{width:100%;height:100%;fill:currentColor}
@@ -49,23 +50,30 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(-
 #boot{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:200}
 .spin{width:38px;height:38px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--accent);animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-#auth,#onboard{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--page);overflow:auto;z-index:100}
+#auth,#onboard{position:fixed;inset:0;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);background:var(--panel);z-index:100}
 #auth:not([hidden]),#onboard:not([hidden]),#app:not([hidden]){animation:fadein .4s ease both}
 @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.orb{position:fixed;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none;z-index:0;animation:drift 18s ease-in-out infinite alternate}
-.orb.o1{width:420px;height:420px;background:#8cc8ff;left:-120px;top:-120px}
-.orb.o2{width:360px;height:360px;background:#c7e3ff;right:-100px;bottom:-100px;animation-delay:-6s}
-:root[data-theme=dark] .orb{opacity:.22}
-@keyframes drift{to{transform:translate(40px,30px) scale(1.12)}}
-.card{position:relative;z-index:1;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.7);border-radius:24px;box-shadow:0 24px 60px rgba(40,110,200,.18),0 2px 6px rgba(40,110,200,.08);width:100%;max-width:420px;padding:34px 32px 28px;margin:auto}
-:root[data-theme=dark] .card{border-color:rgba(255,255,255,.06);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.hero{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:6vw;background:linear-gradient(155deg,#8ec8ff 0%,#cfe7ff 45%,#f4faff 100%);color:#0b2a4d}
+:root[data-theme=dark] .hero{background:linear-gradient(155deg,#10345f,#0b1d33 60%,#08121f);color:#e6f0fb}
+.hero::after{content:"";position:absolute;width:560px;height:560px;border-radius:50%;right:-180px;bottom:-180px;background:radial-gradient(circle,rgba(255,255,255,.75),transparent 70%);animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(-40px,-30px) scale(1.12)}}
+.hsun{font-size:84px;line-height:1;filter:drop-shadow(0 10px 22px rgba(255,170,40,.5));animation:float 4s ease-in-out infinite;width:fit-content}
+.hero h2{font-size:clamp(40px,5vw,60px);font-weight:700;letter-spacing:-1.2px;margin-top:14px}
+.hero p{font-size:clamp(16px,1.6vw,20px);margin:10px 0 28px;max-width:440px;opacity:.85;line-height:1.5}
+.hero ul{list-style:none;display:grid;gap:13px;font-size:16.5px;position:relative;z-index:1}
+.formside{display:flex;overflow:auto;padding:24px;background:var(--panel)}
+.formside .card{margin:auto}
+.card{position:relative;width:100%;max-width:400px;padding:8px 4px}
+#auth .card .logo,#auth .card h1{display:none}
+@media(max-width:900px){#auth,#onboard{grid-template-columns:1fr}.hero{display:none}#auth .card .logo,#auth .card h1{display:block}}
+.card .lead{text-align:center;color:var(--sub);margin:4px 0 20px}
+@media(min-width:901px){#auth .card .lead{font-size:24px;font-weight:700;color:var(--text);text-align:left;margin-bottom:22px}}
 .card.shake{animation:shake .4s}
 @keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-.card h1{font-size:30px;font-weight:600;text-align:center;letter-spacing:-.3px;background:linear-gradient(135deg,#2a8df0,#0f4fa8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card h1{font-size:30px;font-weight:700;text-align:center;letter-spacing:-.3px;background:linear-gradient(135deg,#2a8df0,#0f4fa8);-webkit-background-clip:text;background-clip:text;color:transparent}
 :root[data-theme=dark] .card h1{background:linear-gradient(135deg,#8cc8ff,#4aa3ff);-webkit-background-clip:text;background-clip:text}
 .card .logo{font-size:50px;text-align:center;line-height:1.1;filter:drop-shadow(0 8px 16px rgba(255,170,40,.45));animation:float 4s ease-in-out infinite}
 @keyframes float{50%{transform:translateY(-5px)}}
-.card .lead{text-align:center;color:var(--sub);margin:4px 0 20px}
 .tabs{position:relative;display:flex;background:var(--hdr);border-radius:14px;padding:4px;margin-bottom:20px;border:1px solid var(--line)}
 .tabs i{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:var(--panel);border-radius:11px;box-shadow:0 2px 8px rgba(40,110,200,.15);transition:transform .35s cubic-bezier(.4,.2,.2,1)}
 .tabs.right i{transform:translateX(100%)}
@@ -90,8 +98,6 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(-
 .sbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid var(--line);border-radius:24px;padding:10px;background:var(--panel);font-weight:600;transition:background .15s,transform .1s,box-shadow .2s}
 .sbtn:hover{background:var(--hover);box-shadow:0 3px 10px rgba(40,110,200,.12)}.sbtn:active{transform:scale(.985)}
 .sbtn svg{width:18px;height:18px}
-.sbtn.apple{background:#000;color:#fff;border-color:#000}.sbtn.apple:hover{background:#222}
-:root[data-theme=dark] .sbtn.apple{background:#fff;color:#000;border-color:#fff}
 .sbtn b{font-size:19px;background:conic-gradient(from -45deg,#ea4335 0 25%,#fbbc05 0 50%,#34a853 0 75%,#4285f4 0);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:Arial,sans-serif}
 .or{display:flex;align-items:center;gap:10px;color:var(--sub);font-size:12px;margin:16px 0}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
@@ -103,7 +109,6 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(-
 /* app shell */
 #app{position:fixed;inset:0}
 .wa{position:relative;z-index:1;display:flex;height:100%;background:var(--panel);overflow:hidden}
-@media(min-width:1100px){.wa{height:calc(100% - 40px);margin:20px auto;max-width:1560px;border-radius:20px;border:1px solid rgba(255,255,255,.7);box-shadow:0 24px 60px rgba(40,110,200,.16),0 2px 6px rgba(40,110,200,.08)}:root[data-theme=dark] .wa{border-color:rgba(255,255,255,.05);box-shadow:0 24px 60px rgba(0,0,0,.5)}}
 aside{width:30%;min-width:340px;max-width:480px;display:flex;flex-direction:column;border-right:1px solid var(--line);background:var(--panel);position:relative}
 .meinfo{min-width:0;display:flex;flex-direction:column;cursor:pointer;margin-left:4px}.meinfo b{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meinfo small{font-size:12.5px;color:var(--sub)}
 .hdr{height:59px;padding:10px 16px;background:var(--hdr);display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -200,6 +205,14 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
 .pop{position:absolute;background:var(--panel);box-shadow:0 2px 12px rgba(11,20,26,.3);border-radius:10px;z-index:30}
 #emoji{bottom:66px;left:10px;padding:8px;display:grid;grid-template-columns:repeat(8,1fr);gap:0;width:min(350px,calc(100% - 20px))}
 #emoji button{font-size:24px;border-radius:8px;padding:4px}#emoji button:hover{background:var(--hover)}
+.gifb span{font-size:11px;font-weight:800;border:1.8px solid currentColor;border-radius:5px;padding:1px 4px;letter-spacing:.3px}
+#gifPop{bottom:66px;left:10px;width:min(390px,calc(100% - 20px));height:min(430px,62vh);display:flex;flex-direction:column;padding:10px}
+#gifPop input{border-radius:20px;padding:9px 14px}
+#gifGrid{flex:1;overflow-y:auto;columns:2;column-gap:6px;margin-top:8px}
+#gifGrid img{width:100%;display:block;border-radius:8px;margin-bottom:6px;cursor:pointer;break-inside:avoid;background:var(--hdr);min-height:50px}
+#gifGrid p{column-span:all}
+.gcr{font-size:11px;color:var(--sub);text-align:center;padding-top:6px}
+.b img.pic.gif{width:min(260px,100%)}
 #drop{position:absolute;inset:59px 0 0;background:rgba(31,127,230,.16);border:3px dashed var(--accent);z-index:10;display:grid;place-items:center;font-size:22px;color:var(--accent);pointer-events:none}
 
 /* modals */
@@ -291,9 +304,9 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
 <div id="boot"><div class="spin"></div></div>
 
 <!-- AUTH -->
-<div class="orb o1"></div><div class="orb o2"></div>
 <div id="auth" hidden>
-  <div class="card" id="authCard">
+  <div class="hero"><div class="hsun">☀️</div><h2>Solarr</h2><p>Chat, call and share your screen, all in one bright place.</p><ul><li>💬 Fast messages with read receipts</li><li>📞 Voice and video calls</li><li>🖥️ Screen sharing</li><li>🎞️ GIFs, photos and voice notes</li></ul></div>
+  <div class="formside"><div class="card" id="authCard">
     <div class="logo">☀️</div>
     <h1>Solarr</h1>
     <p class="lead" id="authLead">Welcome back. Sign in to keep chatting.</p>
@@ -312,18 +325,18 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
       <button class="btn" id="authBtn" style="width:100%">Log in</button>
     </form>
     <div style="text-align:center;margin-top:12px" id="forgotWrap"><button class="linkb" id="forgot" type="button">Forgot password?</button></div>
-    <div class="or">or continue with</div>
+    <div class="or">or</div>
     <div class="soc">
-      <button class="sbtn" id="gBtn" type="button"><b>G</b> Google</button>
-      <button class="sbtn apple" id="aBtn" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg> Apple</button>
+      <button class="sbtn" id="gBtn" type="button"><b>G</b> Continue with Google</button>
     </div>
     <p class="note" id="authNote"></p>
-  </div>
+  </div></div>
 </div>
 
 <!-- ONBOARD -->
 <div id="onboard" hidden>
-  <div class="card">
+  <div class="hero"><div class="hsun">☀️</div><h2>Solarr</h2><p>Chat, call and share your screen, all in one bright place.</p><ul><li>💬 Fast messages with read receipts</li><li>📞 Voice and video calls</li><li>🖥️ Screen sharing</li><li>🎞️ GIFs, photos and voice notes</li></ul></div>
+  <div class="formside"><div class="card">
     <div class="logo">👋</div>
     <h1>Almost there</h1>
     <p class="lead">Choose your display name and a unique username.</p>
@@ -335,7 +348,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
       <button class="btn" id="obBtn" style="width:100%">Start chatting</button>
     </form>
     <div style="text-align:center;margin-top:12px"><button class="linkb" id="obOut" type="button">Use a different account</button></div>
-  </div>
+  </div></div>
 </div>
 
 <!-- APP -->
@@ -355,7 +368,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
       </div>
       <div class="sbar"><div class="sbox"><i data-ic="search"></i><input type="text" id="search" placeholder="Search or start a new chat" autocomplete="off"></div></div>
       <div id="list"></div>
-      <div class="demo" id="demoNote" hidden>Demo mode: data stays in this browser. Add your Firebase config (see SETUP.md) to chat across devices and use Google/Apple sign-in.</div>
+      <div class="demo" id="demoNote" hidden>Demo mode: data stays in this browser. Add your Firebase config (see SETUP.md) to chat across devices and use Google sign-in.</div>
     </aside>
     <main>
       <div id="empty"><div class="big">☀️</div><h2>Solarr</h2><p>Send and receive messages, make voice and video calls, and share your screen.<br>Tap <b>New chat</b> and enter a friend's username to begin.</p></div>
@@ -373,6 +386,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
         <div class="comp" id="comp">
           <button class="ib" id="emojiBtn" title="Emoji"><i data-ic="emoji"></i></button>
           <button class="ib" id="attachBtn" title="Send photo"><i data-ic="attach"></i></button>
+          <button class="ib gifb" id="gifBtn" title="GIF"><span>GIF</span></button>
           <input type="file" id="file" accept="image/*" hidden>
           <textarea id="text" rows="1" placeholder="Type a message" maxlength="3000"></textarea>
           <button class="ib" id="sendBtn" title="Send" hidden style="color:var(--icon)"><i data-ic="send"></i></button>
@@ -384,6 +398,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
           <button class="ib on" id="recSend" title="Send"><i data-ic="send"></i></button>
         </div>
         <div class="pop" id="emoji" hidden></div>
+        <div class="pop" id="gifPop" hidden><input type="text" id="gifQ" placeholder="Search GIPHY" autocomplete="off"><div id="gifGrid"></div><div class="gcr">Powered by GIPHY</div></div>
         <div id="drop" hidden>Drop a photo to send</div>
       </section>
     </main>
@@ -490,6 +505,8 @@ const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' }
 ];
+// GIFs: free key from https://developers.giphy.com (create an app, choose API). Leave empty and the GIF picker explains how to add one.
+const GIPHY_API_KEY = '';
 const CLOUD = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
 
 /* ---------------- utils ---------------- */
@@ -541,13 +558,16 @@ const ic = (n, cls = '') => { const s = h('span', { class: 'ic ' + cls }); s.inn
 document.querySelectorAll('button[title]').forEach(b => b.setAttribute('aria-label', b.title));
 document.querySelectorAll('i[data-ic]').forEach(el => { el.className = 'ic'; el.innerHTML = svg(el.dataset.ic); });
 
+let nicks = {};
+const nameOf = uid => nicks[uid] || users[uid]?.name || '';
+const dn = u => (u && nicks[u.uid]) || u?.name || '';
 const COLORS = ['#e57373', '#f08a5d', '#e0a526', '#3fb37f', '#2cb5c4', '#4d8fe0', '#8b6fd6', '#d9609a'];
 const hashStr = s => { let x = 0; for (const c of String(s)) x = (x * 31 + c.charCodeAt(0)) | 0; return Math.abs(x); };
 const okPhoto = p => typeof p === 'string' && /^(data:image\/|https:\/\/)/.test(p);
 function avatar(u, size = 49) {
   const el = h('div', { class: 'av', style: `width:${size}px;height:${size}px;font-size:${Math.round(size * .42)}px` });
   if (u && okPhoto(u.photo)) el.append(h('img', { src: u.photo, alt: '' }));
-  else { el.style.background = COLORS[hashStr(u?.uid || u?.name) % COLORS.length]; el.textContent = (u?.name || '?')[0].toUpperCase(); }
+  else { el.style.background = COLORS[hashStr(u?.uid || u?.name) % COLORS.length]; el.textContent = (dn(u) || '?')[0].toUpperCase(); }
   return el;
 }
 const fmtTime = ts => new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -732,10 +752,9 @@ async function makeFirebaseBackend() {
     persist: remember => Au.setPersistence(fa, remember ? Au.browserLocalPersistence : Au.browserSessionPersistence),
     async signUp(e, p, r) { await auth.persist(r); await Au.createUserWithEmailAndPassword(fa, e.trim(), p); },
     async signIn(e, p, r) { await auth.persist(r); await Au.signInWithEmailAndPassword(fa, e.trim(), p); },
-    async social(kind) {
+    async social() {
       await auth.persist(true);
-      const prov = kind === 'apple' ? new Au.OAuthProvider('apple.com') : new Au.GoogleAuthProvider();
-      if (kind === 'apple') { prov.addScope('email'); prov.addScope('name'); }
+      const prov = new Au.GoogleAuthProvider();
       try { await Au.signInWithPopup(fa, prov); }
       catch (e) { if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') await Au.signInWithRedirect(fa, prov); else throw e; }
     },
@@ -752,7 +771,7 @@ function friendly(e) {
     'auth/invalid-email': 'That email address looks wrong.', 'auth/too-many-requests': 'Too many attempts. Wait a minute and try again.',
     'auth/network-request-failed': 'No connection. Check your internet.', 'auth/popup-closed-by-user': 'Sign-in was cancelled.', 'auth/cancelled-popup-request': 'Sign-in was cancelled.',
     'auth/unauthorized-domain': 'This website isn\'t in Firebase → Authentication → Settings → Authorized domains.', 'auth/operation-not-allowed': 'Turn this sign-in method on in Firebase → Authentication → Sign-in method.',
-    'solarr/needs-firebase': 'Google and Apple sign-in need Firebase. Add your config (see SETUP.md).', 'auth/account-exists-with-different-credential': 'That email already has an account with a different sign-in method. Log in with that one first.', 'auth/user-disabled': 'This account has been disabled.', 'auth/internal-error': 'Sign-in failed. For Apple, double-check the Services ID, Team ID, Key ID and key in Firebase (SETUP.md part B).', 'auth/popup-blocked': 'Your browser blocked the sign-in pop-up. Allow pop-ups for this site and try again.', 'solarr/needs-firebase-reset': 'Password reset emails need Firebase. In demo mode, just create a new account.',
+    'solarr/needs-firebase': 'Google sign-in needs Firebase. Add your config (see SETUP.md).', 'auth/account-exists-with-different-credential': 'That email already has an account with a different sign-in method. Log in with that one first.', 'auth/user-disabled': 'This account has been disabled.', 'auth/internal-error': 'Sign-in failed. Please try again.', 'auth/popup-blocked': 'Your browser blocked the sign-in pop-up. Allow pop-ups for this site and try again.', 'solarr/needs-firebase-reset': 'Password reset emails need Firebase. In demo mode, just create a new account.',
     'permission-denied': 'Firestore denied that. Check your security rules (SETUP.md step 7).'
   };
   return map[c] || e?.message || 'Something went wrong.';
@@ -773,7 +792,7 @@ function seenText(u) {
   const d = dayDiff(u.lastSeen);
   return 'last seen ' + (d === 0 ? 'today at ' + fmtTime(u.lastSeen) : d === 1 ? 'yesterday at ' + fmtTime(u.lastSeen) : new Date(u.lastSeen).toLocaleDateString([], { day: 'numeric', month: 'short' }));
 }
-const preview = m => m.deleted ? '🚫 This message was deleted' : m.type === 'image' ? '📷 ' + (m.text || 'Photo') : m.type === 'audio' ? '🎤 Voice message' : m.type === 'call' ? (m.callType === 'video' ? '📹 Video call' : '📞 Voice call') : (m.text || '');
+const preview = m => m.deleted ? '🚫 This message was deleted' : m.type === 'image' ? '📷 ' + (m.text || 'Photo') : m.type === 'gif' ? '🎞️ GIF' : m.type === 'audio' ? '🎤 Voice message' : m.type === 'call' ? (m.callType === 'video' ? '📹 Video call' : '📞 Voice call') : (m.text || '');
 
 /* ---- auth UI ---- */
 let mode = 'login', pendingSignup = null, creating = false;
@@ -794,7 +813,7 @@ $('pass').addEventListener('input', () => {
   const p = $('pass').value; let sc = 0; if (p.length >= 6) sc++; if (p.length >= 10) sc++; if (/[A-Z]/.test(p) && /[a-z]/.test(p)) sc++; if (/\d/.test(p) && /[^A-Za-z0-9]/.test(p)) sc++;
   const bar = $('meterBar'); bar.style.width = (p ? Math.max(sc, 1) * 25 : 0) + '%'; bar.style.background = ['#e5384f', '#f59e0b', '#f5c518', '#22c55e', '#16a34a'][sc];
 });
-$('authNote').textContent = CLOUD ? 'Your account and messages are stored securely in Firebase, so you can sign in on any device.' : 'Demo mode: accounts live in this browser only. Add your Firebase config (SETUP.md) for real cross-device messaging and Google/Apple sign-in.';
+$('authNote').textContent = CLOUD ? 'Your account and messages are stored securely in Firebase, so you can sign in on any device.' : 'Demo mode: accounts live in this browser only. Add your Firebase config (SETUP.md) for real cross-device messaging and Google sign-in.';
 async function usernameTaken(u) { try { return !!(await store.get('usernames/' + u)); } catch { return null; } }
 function bindUserCheck(input, hint) {
   let t, seq = 0;
@@ -827,11 +846,11 @@ $('authForm').onsubmit = async e => {
   catch (ex) { pendingSignup = null; fail(friendly(ex)); }
   finally { setBusy($('authBtn'), false); }
 };
-async function social(kind) {
-  $('authErr').textContent = ''; const b = $(kind === 'apple' ? 'aBtn' : 'gBtn'); b.disabled = true;
-  try { await auth.social(kind); } catch (ex) { $('authErr').textContent = friendly(ex); shake(); } finally { b.disabled = false; }
+async function social() {
+  $('authErr').textContent = ''; const b = $('gBtn'); b.disabled = true;
+  try { await auth.social(); } catch (ex) { $('authErr').textContent = friendly(ex); shake(); } finally { b.disabled = false; }
 }
-$('gBtn').onclick = () => social('google'); $('aBtn').onclick = () => social('apple');
+$('gBtn').onclick = social;
 $('forgot').onclick = async () => {
   const em = $('email').value.trim(); if (!em) { $('authErr').textContent = 'Type your email above first.'; return; }
   try { await auth.reset(em); $('authErr').textContent = ''; toast('Password reset email sent — check your inbox.'); } catch (ex) { $('authErr').textContent = friendly(ex); }
@@ -876,13 +895,14 @@ function onAuth(u) {
 function stopSession() {
   unsubs.forEach(f => { try { f(); } catch {} }); unsubs = []; Object.values(userWatch).forEach(f => f()); userWatch = {};
   if (msgUnsub) msgUnsub(); msgUnsub = null; clearInterval(hb); clearInterval(tick);
-  users = {}; chats = []; active = null; msgs = []; sessionOn = false; seenTs = {}; if (typeof call !== 'undefined' && call) finishCall('ended'); $('wa').classList.remove('chatopen');
+  users = {}; nicks = {}; chats = []; active = null; msgs = []; sessionOn = false; seenTs = {}; if (typeof call !== 'undefined' && call) finishCall('ended'); $('wa').classList.remove('chatopen');
   $('chat').hidden = true; $('empty').hidden = false; aiHist = [];
 }
 let hb, tick;
 function startSession() {
   sessionOn = true; showOnly('app'); $('demoNote').hidden = CLOUD; renderMe(); renderList();
   unsubs.push(store.listenCol('chats', { where: [['members', 'array-contains', me.uid]] }, onChats));
+  unsubs.push(store.listenDoc('nicknames/' + me.uid, d => { nicks = d?.map || {}; renderList(); if (active) renderHead(); if (call) updateCallUI(); }));
   unsubs.push(store.listenCol('calls', { where: [['to', '==', me.uid]] }, docs => docs.forEach(onCallDoc)));
   const beat = () => { if (!document.hidden && me) store.set('users/' + me.uid, { lastSeen: Date.now() }, true).catch(() => {}); };
   beat(); hb = setInterval(beat, 30000);
@@ -902,7 +922,7 @@ function onChats(docs) {
   });
   chats = docs;
   fresh.forEach(c => {
-    const viewing = active && active.id === c.id && !document.hidden; if (!viewing) { Tone.ping(); notify(users[otherOf(c)]?.name || 'Solarr', c.lastMsg.text || 'New message'); }
+    const viewing = active && active.id === c.id && !document.hidden; if (!viewing) { Tone.ping(); notify(nameOf(otherOf(c)) || 'Solarr', c.lastMsg.text || 'New message'); }
   });
   renderList(); if (active) { renderHead(); }
   const n = chats.reduce((s, c) => s + (c.unread?.[me.uid] || 0), 0); document.title = (n ? `(${n}) ` : '') + 'Solarr';
@@ -920,7 +940,7 @@ function tickIcon(m) { return h('span', { class: 'tk' + (m.readAt ? ' rd' : '') 
 function renderList() {
   if (!me || !profile) return;
   const q = $('search').value.trim().toLowerCase(), box = $('list'); box.textContent = '';
-  const rows = chats.map(c => ({ c, u: users[otherOf(c)] })).filter(r => r.u && (!q || r.u.name.toLowerCase().includes(q) || (r.u.username || '').includes(q) || (r.c.lastMsg?.text || '').toLowerCase().includes(q)))
+  const rows = chats.map(c => ({ c, u: users[otherOf(c)] })).filter(r => r.u && (!q || nameOf(r.u.uid).toLowerCase().includes(q) || r.u.name.toLowerCase().includes(q) || (r.u.username || '').includes(q) || (r.c.lastMsg?.text || '').toLowerCase().includes(q)))
     .sort((a, b) => (b.c.lastMsg?.ts || b.c.createdAt || 0) - (a.c.lastMsg?.ts || a.c.createdAt || 0));
   if (!rows.length) { box.append(h('div', { class: 'emptylist', text: q ? 'No chats found.' : 'No chats yet. Tap the new-chat icon and enter a friend\'s username.' })); return; }
   rows.forEach(({ c, u }) => {
@@ -931,13 +951,13 @@ function renderList() {
     else p.textContent = u.about || '';
     box.append(h('div', { class: 'item' + (active && active.id === c.id ? ' on' : ''), onclick: () => openChat(u.uid) },
       avatar(u, 49), h('div', { class: 't' },
-        h('div', { class: 'r1' }, h('div', { class: 'n', text: u.name }), lm ? h('div', { class: 'tm' + (un ? ' u' : ''), text: listTime(lm.ts) }) : null),
+        h('div', { class: 'r1' }, h('div', { class: 'n', text: nameOf(u.uid) }), lm ? h('div', { class: 'tm' + (un ? ' u' : ''), text: listTime(lm.ts) }) : null),
         h('div', { class: 'r2' }, p, un ? h('div', { class: 'badge', text: un > 99 ? '99+' : un }) : null))));
   });
 }
 $('search').oninput = renderList;
 $('btnMenu').onclick = e => { e.stopPropagation(); $('mainMenu').hidden = !$('mainMenu').hidden; };
-document.addEventListener('click', e => { if (!e.target.closest('#mainMenu,#btnMenu')) $('mainMenu').hidden = true; if (!e.target.closest('#emoji,#emojiBtn')) $('emoji').hidden = true; if (!e.target.closest('.mmenu,.chev')) closeMsgMenu(); });
+document.addEventListener('click', e => { if (!e.target.closest('#mainMenu,#btnMenu')) $('mainMenu').hidden = true; if (!e.target.closest('#emoji,#emojiBtn')) $('emoji').hidden = true; if (!e.target.closest('#gifPop,#gifBtn')) $('gifPop').hidden = true; if (!e.target.closest('.mmenu,.chev')) closeMsgMenu(); });
 $('mLogout').onclick = $('setLogout').onclick = () => { closeAll(); auth.signOut(); };
 $('mProfile').onclick = () => { $('mainMenu').hidden = true; openSettings(); };
 
@@ -1029,7 +1049,7 @@ async function openChat(other) {
 $('back').onclick = () => { active = null; if (msgUnsub) msgUnsub(); msgUnsub = null; $('chat').hidden = true; $('empty').hidden = false; $('wa').classList.remove('chatopen'); renderList(); };
 function renderHead() {
   if (!active) return; const u = users[active.other]; if (!u) return;
-  $('hAv').textContent = ''; $('hAv').append(avatar(u, 40)); $('hName').textContent = u.name;
+  $('hAv').textContent = ''; $('hAv').append(avatar(u, 40)); $('hName').textContent = nameOf(u.uid);
   const c = chats.find(x => x.id === active.id), typing = c?.typing?.[u.uid] && Date.now() - c.typing[u.uid] < 5000;
   $('hStatus').textContent = typing ? 'typing…' : seenText(u);
 }
@@ -1037,9 +1057,18 @@ $('hWho').onclick = $('hAv').onclick = () => active && showContact(active.other)
 function showContact(id) {
   const u = users[id]; if (!u) return; const b = $('contactBody'); b.textContent = '';
   const act = (icn, label, fn) => h('div', {}, h('button', { class: 'ib', title: label, onclick: fn }, ic(icn)), label);
-  b.append(h('div', { style: 'display:flex;justify-content:center;margin:6px 0 12px' }, avatar(u, 110)), h('div', { style: 'font-size:21px;font-weight:600', text: u.name }), h('div', { class: 'sub', text: '@' + u.username }),
+  const nin = h('input', { type: 'text', maxlength: '30', placeholder: 'Add a nickname', value: nicks[id] || '', style: 'text-align:center' });
+  const saveNick = async () => {
+    const v = nin.value.trim().slice(0, 30);
+    try { await store.set('nicknames/' + me.uid, { map: { [id]: v || null } }, true); toast(v ? 'Nickname saved' : 'Nickname removed'); showContact(id); } catch (e) { toast(friendly(e)); }
+  };
+  nin.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveNick(); } });
+  b.append(h('div', { style: 'display:flex;justify-content:center;margin:6px 0 12px' }, avatar(u, 110)), h('div', { style: 'font-size:21px;font-weight:600', text: dn(u) }),
+    nicks[id] ? h('div', { class: 'sub', text: 'Display name: ' + u.name }) : null, h('div', { class: 'sub', text: '@' + u.username }),
     h('p', { style: 'margin:14px 0 4px;line-height:1.5', text: u.about || '' }), h('div', { class: 'sub', style: 'font-size:13px', text: seenText(u) + (u.createdAt ? ' · Joined ' + new Date(u.createdAt).toLocaleDateString([], { month: 'long', year: 'numeric' }) : '') }),
-    h('div', { class: 'cbtns' }, act('chat', 'Message', () => { closeModal('contactModal'); openChat(id); }), act('call', 'Voice', () => { closeModal('contactModal'); startCall(id, 'audio'); }), act('video', 'Video', () => { closeModal('contactModal'); startCall(id, 'video'); })));
+    h('div', { class: 'cbtns' }, act('chat', 'Message', () => { closeModal('contactModal'); openChat(id); }), act('call', 'Voice', () => { closeModal('contactModal'); startCall(id, 'audio'); }), act('video', 'Video', () => { closeModal('contactModal'); startCall(id, 'video'); })),
+    h('div', { style: 'margin-top:18px;text-align:left' }, h('div', { class: 'sub', style: 'font-size:12.5px;margin-bottom:6px', text: 'Nickname — only you can see this' }), nin,
+      h('div', { class: 'row2', style: 'margin-top:10px' }, h('button', { class: 'btn', onclick: saveNick, text: 'Save nickname' }), nicks[id] ? h('button', { class: 'btn ghost', onclick: () => { nin.value = ''; saveNick(); }, text: 'Remove' }) : null)));
   openModal('contactModal');
 }
 async function markRead() {
@@ -1075,8 +1104,9 @@ function msgNode(m, first) {
   if (m.deleted) { row.append(h('div', { class: 'b del' }, h('span', { text: '🚫 ' + (mine ? 'You deleted this message' : 'This message was deleted') }), h('span', { class: 'mt', text: fmtTime(m.ts) }))); return row; }
   const jumbo = m.type === 'text' && JUMBO.test(m.text || '') && (m.text.match(/\p{Extended_Pictographic}/gu) || []).length <= 3;
   const b = h('div', { class: 'b' + (jumbo ? ' jumbo' : '') + (selId === m.id ? ' sel' : '') });
-  if (m.replyTo) b.append(h('div', { class: 'q', onclick: () => { const t = $('msgs').querySelector(`[data-id="${m.replyTo.id}"]`); t?.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, h('b', { text: m.replyTo.from === me.uid ? 'You' : users[m.replyTo.from]?.name || '' }), h('span', { text: m.replyTo.text || '' })));
+  if (m.replyTo) b.append(h('div', { class: 'q', onclick: () => { const t = $('msgs').querySelector(`[data-id="${m.replyTo.id}"]`); t?.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, h('b', { text: m.replyTo.from === me.uid ? 'You' : nameOf(m.replyTo.from) }), h('span', { text: m.replyTo.text || '' })));
   if (m.type === 'image' && okPhoto(m.image)) b.append(h('img', { class: 'pic', src: m.image, alt: 'Photo', onclick: () => { $('lightbox').firstElementChild.src = m.image; openModal('lightbox'); } }));
+  if (m.type === 'gif' && okGif(m.gif)) b.append(h('img', { class: 'pic gif', src: m.gif, alt: 'GIF', loading: 'lazy', onclick: () => { $('lightbox').firstElementChild.src = m.gif; openModal('lightbox'); } }));
   if (m.type === 'audio' && /^data:audio\//.test(m.audio || '')) b.append(h('audio', { controls: true, src: m.audio, preload: 'metadata' }));
   if (m.type === 'call') {
     const miss = m.status === 'missed' || m.status === 'declined' || m.status === 'busy', vid = m.callType === 'video';
@@ -1113,7 +1143,7 @@ async function delMsg(m) {
     const c = chats.find(x => x.id === active.id); if (c?.lastMsg?.ts === m.ts) await store.set('chats/' + active.id, { lastMsg: { text: '🚫 This message was deleted', deleted: true } }, true);
   } catch (e) { toast(friendly(e)); }
 }
-function startReply(m) { replyTo = m; $('rbT').textContent = m.from === me.uid ? 'You' : users[m.from]?.name || ''; $('rbS').textContent = preview(m); $('replybar').hidden = false; $('text').focus(); }
+function startReply(m) { replyTo = m; $('rbT').textContent = m.from === me.uid ? 'You' : nameOf(m.from); $('rbS').textContent = preview(m); $('replybar').hidden = false; $('text').focus(); }
 $('rbX').onclick = () => { replyTo = null; $('replybar').hidden = true; };
 $('msgs').addEventListener('scroll', updateToBottom);
 function updateToBottom() { const b = $('msgs'); $('toBottom').hidden = b.scrollHeight - b.scrollTop - b.clientHeight < 300; }
@@ -1152,7 +1182,25 @@ chatEl.addEventListener('dragleave', () => { if (--dragN <= 0) { dragN = 0; $('d
 chatEl.addEventListener('dragover', e => e.preventDefault());
 chatEl.addEventListener('drop', e => { e.preventDefault(); dragN = 0; $('drop').hidden = true; const f = [...e.dataTransfer.files].find(x => x.type.startsWith('image/')); if (f) sendImageFile(f); });
 '😀 😁 😂 🤣 😊 😍 😘 😎 🤔 😅 😭 😡 😴 🥳 🤩 😇 🙃 😉 😬 🙄 😤 🥺 🤗 🫡 👍 👎 👏 🙌 🙏 💪 👋 🤝 ❤️ 🧡 💛 💚 💙 💜 🖤 💔 🔥 ✨ ⭐ ☀️ 🌈 🌊 🎉 🎁 🍕 🍔 🍟 ☕ 🍺 🍰 🐶 🐱 🦊 🐼 🐢 🌸 🌴 ⚽ 🏀 🎮 🎧 📷 🚀 ✈️ 🏖️ 💯 ✅ ❌ ❓ 👀 🤞 🤙'.split(' ').forEach(em => $('emoji').append(h('button', { type: 'button', text: em, onclick: () => { const t = $('text'), s = t.selectionStart ?? t.value.length; t.value = t.value.slice(0, s) + em + t.value.slice(t.selectionEnd ?? s); t.focus(); t.selectionStart = t.selectionEnd = s + em.length; t.dispatchEvent(new Event('input')); } })));
-$('emojiBtn').onclick = e => { e.stopPropagation(); $('emoji').hidden = !$('emoji').hidden; };
+$('emojiBtn').onclick = e => { e.stopPropagation(); $('emoji').hidden = !$('emoji').hidden; $('gifPop').hidden = true; };
+
+/* GIFs (GIPHY) */
+const okGif = u => typeof u === 'string' && /^https:\/\/([a-z0-9-]+\.)*giphy\.com\//i.test(u);
+let gifT, gifSeq = 0;
+async function loadGifs(q) {
+  const grid = $('gifGrid'); grid.textContent = ''; const say = t => grid.append(h('p', { class: 'sub', style: 'padding:10px;line-height:1.5', text: t }));
+  if (!GIPHY_API_KEY) { say('GIF search needs a free GIPHY API key. Get one at developers.giphy.com, paste it into GIPHY_API_KEY near the top of index.html, and re-upload (see SETUP.md).'); return; }
+  const my = ++gifSeq; say('Loading…');
+  try {
+    const url = `https://api.giphy.com/v1/gifs/${q ? 'search' : 'trending'}?api_key=${encodeURIComponent(GIPHY_API_KEY)}${q ? '&q=' + encodeURIComponent(q) : ''}&limit=30&rating=pg-13`;
+    const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); if (my !== gifSeq) return; grid.textContent = '';
+    const items = (j.data || []).filter(g => okGif(g.images?.fixed_width?.url)); if (!items.length) { say('No GIFs found.'); return; }
+    items.forEach(g => grid.append(h('img', { src: g.images.fixed_width_small?.url && okGif(g.images.fixed_width_small.url) ? g.images.fixed_width_small.url : g.images.fixed_width.url, alt: g.title || 'GIF', loading: 'lazy',
+      onclick: () => { $('gifPop').hidden = true; sendMsg({ type: 'gif', gif: g.images.downsized?.url && okGif(g.images.downsized.url) ? g.images.downsized.url : g.images.fixed_width.url }); } })));
+  } catch (e) { if (my === gifSeq) { grid.textContent = ''; say('Couldn\'t load GIFs. Check your GIPHY key and connection.'); } }
+}
+$('gifBtn').onclick = e => { e.stopPropagation(); const p = $('gifPop'); p.hidden = !p.hidden; $('emoji').hidden = true; if (!p.hidden) { $('gifQ').value = ''; loadGifs(''); $('gifQ').focus(); } };
+$('gifQ').oninput = () => { clearTimeout(gifT); gifT = setTimeout(() => loadGifs($('gifQ').value.trim()), 400); };
 
 /* voice notes */
 let rec = null;
@@ -1241,15 +1289,15 @@ function onCallDoc(c) {
     if (call || incoming) { store.update('calls/' + c.id, { status: 'busy' }).catch(() => {}); return; }
     showIncoming(c);
   } else if (incoming && incoming.id === c.id && c.status !== 'ringing' && c.status !== 'accepted') {
-    const n = users[c.from]?.name || c.fromName || 'Someone'; hideIncoming(); if (c.status === 'missed' || c.status === 'ended') toast(`Missed ${c.type} call from ${n}`);
+    const n = nameOf(c.from) || c.fromName || 'Someone'; hideIncoming(); if (c.status === 'missed' || c.status === 'ended') toast(`Missed ${c.type} call from ${n}`);
   }
 }
 function showIncoming(c) {
   incoming = c; if (!users[c.from]) watchUser(c.from);
   const u = users[c.from] || { uid: c.from, name: c.fromName || 'Someone' };
-  $('inAv').textContent = ''; $('inAv').append(avatar(u, 120)); $('inName').textContent = u.name; $('inType').textContent = c.type === 'video' ? 'Solarr video call…' : 'Solarr voice call…';
+  $('inAv').textContent = ''; $('inAv').append(avatar(u, 120)); $('inName').textContent = dn(u); $('inType').textContent = c.type === 'video' ? 'Solarr video call…' : 'Solarr voice call…';
   $('incoming').hidden = false; Tone.start('in'); document.title = '📞 Incoming call — Solarr';
-  notify('Incoming ' + c.type + ' call', u.name + ' is calling you');
+  notify('Incoming ' + c.type + ' call', dn(u) + ' is calling you');
   incoming.timer = setTimeout(() => { if (incoming && incoming.id === c.id) hideIncoming(); }, 45000);
 }
 function hideIncoming() { if (!incoming) return; clearTimeout(incoming.timer); incoming = null; $('incoming').hidden = true; if (!call) Tone.stop(); document.title = 'Solarr'; }
@@ -1272,10 +1320,10 @@ $('inAccept').onclick = async () => {
     sender.go(); watchCall(c.id); watchCands(c.id, 'callerCandidates'); updateCallUI();
   } catch (e) { console.warn(e); toast('Couldn\'t connect the call.'); finishCall('ended'); }
 };
-function showCallUI() { const u = users[call.peerUid] || { name: '…' }; $('cAv').textContent = ''; $('cAv').append(avatar(u, 130)); $('cName').textContent = u.name; $('callUI').hidden = false; $('galaxy').hidden = true; updateCallUI(); }
+function showCallUI() { const u = users[call.peerUid] || { name: '…' }; $('cAv').textContent = ''; $('cAv').append(avatar(u, 130)); $('cName').textContent = dn(u); $('callUI').hidden = false; $('galaxy').hidden = true; updateCallUI(); }
 function updateCallUI() {
   if (!call) return; const ui = $('callUI'), u = users[call.peerUid];
-  if (u && $('cName').textContent !== u.name) { $('cAv').textContent = ''; $('cAv').append(avatar(u, 130)); $('cName').textContent = u.name; }
+  if (u && $('cName').textContent !== dn(u)) { $('cAv').textContent = ''; $('cAv').append(avatar(u, 130)); $('cName').textContent = dn(u); }
   const vid = (call.type === 'video' || call.peerShare) && call.remote && call.remote.getVideoTracks().length > 0;
   ui.classList.toggle('showv', !!vid); ui.classList.toggle('ring', !call.startedAt);
   $('cStatus').textContent = call.reconnecting ? 'Reconnecting…' : call.startedAt ? fmtDur((Date.now() - call.startedAt) / 1000) : call.status;
@@ -1336,24 +1384,24 @@ function aiRender() {
   if (aiBusy && !aiHist.length) box.append(h('div', { class: 'am a', text: '…' })); box.scrollTop = box.scrollHeight;
 }
 function aiAdd(role, text) { aiHist.push({ role, text }); aiSaveH(); aiRender(); }
-const findPerson = q => { q = (q || '').trim().toLowerCase().replace(/^@/, ''); if (!q) return null; const l = Object.values(users).filter(u => u.uid !== me.uid); return l.find(u => u.username === q || u.name.toLowerCase() === q) || l.find(u => u.username.startsWith(q) || u.name.toLowerCase().startsWith(q)); };
+const findPerson = q => { q = (q || '').trim().toLowerCase().replace(/^@/, ''); if (!q) return null; const l = Object.values(users).filter(u => u.uid !== me.uid); return l.find(u => u.username === q || dn(u).toLowerCase() === q || u.name.toLowerCase() === q) || l.find(u => u.username.startsWith(q) || dn(u).toLowerCase().startsWith(q) || u.name.toLowerCase().startsWith(q)); };
 const JOKES = ['Why did the sun skip college? It already had a million degrees. ☀️', 'I told my phone I needed space. Now it\'s stuck on "Loading…"', 'Why don\'t scientists trust atoms? They make up everything.', 'What do you call a sleeping bull at the beach? A bulldozer. 🏖️'];
 function aiLocal(t) {
   const s = t.toLowerCase().trim(); let m;
   if ((m = t.match(/^(?:send|tell|message|text)\s+(?:a\s+message\s+to\s+)?@?([\w ]+?)\s*(?::|-|\bthat\b|\bsaying\b)\s*(.+)$/i))) {
     const u = findPerson(m[1]); if (!u) return `I couldn't find "${m[1].trim()}" in your chats.`;
-    openChat(u.uid).then(() => { $('text').value = m[2].trim(); sendText(); }); return `Sending to ${u.name}: "${m[2].trim()}" ✓`;
+    openChat(u.uid).then(() => { $('text').value = m[2].trim(); sendText(); }); return `Sending to ${dn(u)}: "${m[2].trim()}" ✓`;
   }
   if ((m = t.match(/^(video\s+call|call|ring|phone|voice\s+call)\s+@?([\w ]+)$/i))) {
     const u = findPerson(m[2]); if (!u) return `I couldn't find "${m[2].trim()}" in your chats.`;
-    startCall(u.uid, /video/i.test(m[1]) ? 'video' : 'audio'); return `Calling ${u.name}… 📞`;
+    startCall(u.uid, /video/i.test(m[1]) ? 'video' : 'audio'); return `Calling ${dn(u)}… 📞`;
   }
-  if ((m = t.match(/^(?:open|chat with|message|talk to|go to)\s+(?:chat\s+with\s+)?@?([\w ]+)$/i))) { const u = findPerson(m[1]); if (!u) return `I couldn't find "${m[1].trim()}".`; openChat(u.uid); return `Opened your chat with ${u.name} 💬`; }
+  if ((m = t.match(/^(?:open|chat with|message|talk to|go to)\s+(?:chat\s+with\s+)?@?([\w ]+)$/i))) { const u = findPerson(m[1]); if (!u) return `I couldn't find "${m[1].trim()}".`; openChat(u.uid); return `Opened your chat with ${dn(u)} 💬`; }
   if (/unread|what did i miss|missed|catch me up|new messages/.test(s)) {
     const l = chats.filter(c => (c.unread?.[me.uid] || 0) > 0 && users[otherOf(c)]);
-    return l.length ? 'Unread:\n' + l.map(c => `• ${users[otherOf(c)].name} (${c.unread[me.uid]}): "${(c.lastMsg?.text || '').slice(0, 50)}"`).join('\n') : 'You\'re all caught up ✨';
+    return l.length ? 'Unread:\n' + l.map(c => `• ${nameOf(otherOf(c))} (${c.unread[me.uid]}): "${(c.lastMsg?.text || '').slice(0, 50)}"`).join('\n') : 'You\'re all caught up ✨';
   }
-  if (/who'?s online|who is online|online now/.test(s)) { const l = Object.values(users).filter(u => u.uid !== me.uid && isOnline(u)); return l.length ? 'Online now:\n' + l.map(u => '• ' + u.name).join('\n') : 'Nobody else is online right now.'; }
+  if (/who'?s online|who is online|online now/.test(s)) { const l = Object.values(users).filter(u => u.uid !== me.uid && isOnline(u)); return l.length ? 'Online now:\n' + l.map(u => '• ' + dn(u)).join('\n') : 'Nobody else is online right now.'; }
   if (/dark mode|night mode|dark theme/.test(s)) { P.set('theme', 'dark'); applyTheme(); return 'Dark mode on 🌙'; }
   if (/light mode|day mode|light theme/.test(s)) { P.set('theme', 'light'); applyTheme(); return 'Light mode on ☀️'; }
   if (/wallpaper|background/.test(s)) { const i = WALLS.findIndex(w => s.includes(w.n.toLowerCase())); if (i < 0) return 'Pick one: ' + WALLS.map(w => w.n).join(', ') + '. e.g. "mint wallpaper".'; P.set('wall', { i }); applyTheme(); return `Wallpaper: ${WALLS[i].n} 🎨`; }
