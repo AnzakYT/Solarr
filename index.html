@@ -239,15 +239,20 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
 
 /* calls */
 #callUI{position:fixed;inset:0;z-index:300;background:#0b141a;color:#fff;display:flex;flex-direction:column;align-items:center;overflow:hidden}
-#remoteV{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:none}
-#callUI.showv #remoteV{display:block}
+#grid{position:absolute;inset:0;display:grid;gap:3px;background:#000;grid-auto-rows:minmax(0,1fr);opacity:0;pointer-events:none}
+#callUI.showv #grid{opacity:1}
+.tile{position:relative;background:#16222b;overflow:hidden;display:grid;place-items:center;min-height:0;min-width:0}
+.tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;background:#000}
+.tile.hasv video{opacity:1}.tile.shr video{object-fit:contain}
+.tile .tav{display:grid;place-items:center}.tile.hasv .tav{display:none}
+.tile .nm{position:absolute;right:10px;top:10px;background:rgba(0,0,0,.5);padding:3px 9px;border-radius:12px;font-size:13px;max-width:85%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cinfo{position:relative;z-index:2;text-align:center;margin-top:9vh;text-shadow:0 1px 6px rgba(0,0,0,.6)}
 .cinfo .av{margin:0 auto 18px;box-shadow:0 0 0 10px rgba(255,255,255,.06)}
 #callUI.ring .cinfo .av{animation:pulse 1.6s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,163,255,.55)}100%{box-shadow:0 0 0 38px rgba(74,163,255,0)}}
 .cinfo h2{font-weight:400;font-size:28px}
 .cinfo p{margin-top:6px;color:#c1cbd1;font-size:16px}
-#callUI.showv .cinfo{position:absolute;top:14px;left:18px;margin:0;text-align:left;display:flex;align-items:center;gap:12px}
+#callUI.showv .cinfo{z-index:5;position:absolute;top:14px;left:18px;margin:0;text-align:left;display:flex;align-items:center;gap:12px}
 #callUI.showv .cinfo .av{width:40px!important;height:40px!important;font-size:17px!important;margin:0;box-shadow:none}
 #callUI.showv .cinfo h2{font-size:17px}#callUI.showv .cinfo p{margin:0;font-size:13px}
 #localV{position:absolute;right:16px;bottom:120px;width:min(26vw,220px);aspect-ratio:3/4;object-fit:cover;border-radius:12px;background:#222;z-index:3;box-shadow:0 4px 18px rgba(0,0,0,.6);transform:scaleX(-1)}
@@ -261,6 +266,25 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
 #incoming .cbar{background:none;gap:70px}
 #incoming .cb{width:66px;height:66px}
 .lbl{display:block;font-size:12px;margin-top:6px;text-align:center;color:#c1cbd1}
+
+/* typing, groups, forward */
+.dots{display:inline-flex;gap:3px;align-items:center;margin-left:5px;vertical-align:middle;height:1em}
+.dots i{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;animation:dotb 1.2s infinite ease-in-out}
+@keyframes dotb{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-4px);opacity:1}}
+.chead .who .typing,.item .p .typing{color:var(--accent2)}
+.b.typb{display:flex;align-items:center;padding:11px 14px;min-width:60px;color:var(--sub)}
+.b.typb .dots{margin:0}.b.typb .dots i{width:7px;height:7px}
+.tn{font-size:12.5px;margin-right:3px}
+.mrow.sys{align-items:center;margin:8px 0}
+.syspill{background:var(--pill);color:var(--sub);font-size:12.5px;padding:5px 12px;border-radius:8px;box-shadow:var(--shadow);max-width:80%;text-align:center;white-space:normal}
+.snd{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fwd{display:flex;align-items:center;gap:4px;font-size:12.5px;font-style:italic;color:var(--sub);margin-bottom:3px}.fwd .ic{width:14px;height:14px}
+.prow{display:flex;align-items:center;gap:12px;padding:8px 4px;cursor:pointer;border-radius:8px}.prow:hover{background:var(--hover)}
+.prow .t{flex:1;min-width:0}.prow b{font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.prow small{color:var(--sub)}
+.prow input{width:20px;height:20px;accent-color:var(--accent);flex-shrink:0}
+.prow .btn{padding:6px 14px;font-size:13px}
+.joinb{background:#22c55e;color:#fff;border-radius:18px;padding:7px 15px;font-weight:600;font-size:13.5px;margin-right:2px;white-space:nowrap}
+.joinb:hover{background:#16a34a}.joinb[hidden]{display:none}
 
 /* galaxy AI */
 .galaxy{position:fixed;right:22px;bottom:86px;width:60px;height:60px;border-radius:50%;z-index:56;
@@ -317,7 +341,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
         <div class="fl has-hint"><input id="uname" type="text" maxlength="20" placeholder=" " autocapitalize="none" autocomplete="off" spellcheck="false"><label for="uname">Username</label><span class="hint" id="uHint"></span></div>
         <div class="idexp"><b>Display name</b> is what friends see, and you can change it any time. <b>Username</b> is unique to you and is how people find you.</div>
       </div></div>
-      <div class="fl"><input id="email" type="email" placeholder=" " autocomplete="email"><label for="email">Email</label></div>
+      <div class="fl"><input id="email" type="text" placeholder=" " autocomplete="username" autocapitalize="none" spellcheck="false"><label for="email">Email or username</label></div>
       <div class="fl"><div class="pw"><input id="pass" type="password" placeholder=" " autocomplete="current-password"><label for="pass">Password</label><button type="button" class="ib" id="eye" title="Show password"><i data-ic="eye"></i></button></div></div>
       <div class="meter"><i id="meterBar"></i></div>
       <label class="tg" style="justify-content:flex-start;gap:8px;font-size:13px;color:var(--sub);margin-bottom:2px"><input type="checkbox" id="remember" checked> Keep me signed in</label>
@@ -363,6 +387,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
         <button class="ib" id="btnMenu" title="Menu"><i data-ic="more"></i></button>
       </div>
       <div class="menu" id="mainMenu" hidden style="top:52px;right:14px">
+        <button id="mGroup">New group</button>
         <button id="mProfile">Profile &amp; settings</button>
         <button id="mLogout">Log out</button>
       </div>
@@ -377,6 +402,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
           <button class="ib back" id="back" title="Back"><i data-ic="back"></i></button>
           <div id="hAv" style="cursor:pointer"></div>
           <div class="who" id="hWho"><b id="hName"></b><small id="hStatus"></small></div>
+          <button class="joinb" id="btnJoin" hidden>Join call</button>
           <button class="ib" id="btnVideo" title="Video call"><i data-ic="video"></i></button>
           <button class="ib" id="btnCall" title="Voice call"><i data-ic="call"></i></button>
         </div>
@@ -414,7 +440,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
   </div>
 </div>
 <div id="callUI" hidden>
-  <video id="remoteV" autoplay playsinline></video>
+  <div id="grid"></div>
   <div class="cinfo"><div id="cAv"></div><div><h2 id="cName"></h2><p id="cStatus"></p></div></div>
   <video id="localV" autoplay playsinline muted hidden></video>
   <div class="cbar">
@@ -429,6 +455,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
 <div class="modal" id="newModal" hidden><div class="sheet">
   <div class="sh"><button class="ib" data-close><i data-ic="back"></i></button><h3>New chat</h3></div>
   <div class="sb">
+    <button class="btn ghost" id="newGroupBtn" type="button" style="width:100%;margin-bottom:14px">👥 New group</button>
     <form id="newForm"><div class="fld"><label>Friend's username</label><input type="text" id="newUser" placeholder="e.g. sam_01" maxlength="21" autocomplete="off" autocapitalize="none"></div><div class="err" id="newErr"></div><button class="btn" style="width:100%">Start chat</button></form>
     <div id="known"></div>
   </div>
@@ -458,6 +485,32 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
 <div class="modal" id="contactModal" hidden><div class="sheet">
   <div class="sh"><button class="ib" data-close><i data-ic="close"></i></button><h3>Contact info</h3></div>
   <div class="sb" id="contactBody" style="text-align:center"></div>
+</div></div>
+
+<div class="modal" id="groupModal" hidden><div class="sheet">
+  <div class="sh"><button class="ib" data-close><i data-ic="back"></i></button><h3>New group</h3></div>
+  <div class="sb">
+    <div class="fld"><label>Group name</label><input type="text" id="gName" maxlength="40" placeholder="e.g. Weekend plans" autocomplete="off"></div>
+    <h4 style="margin-top:6px">Add people</h4>
+    <div id="gList"></div>
+    <form id="gAddForm" style="display:flex;gap:8px;margin-top:10px"><input type="text" id="gUser" placeholder="Add by username" maxlength="21" autocomplete="off" autocapitalize="none"><button class="btn" style="padding:0 16px">Add</button></form>
+    <div class="err" id="gErr"></div>
+    <button class="btn" id="gCreate" type="button" style="width:100%;margin-top:6px">Create group</button>
+  </div>
+</div></div>
+
+<div class="modal" id="ginfoModal" hidden><div class="sheet">
+  <div class="sh"><button class="ib" data-close><i data-ic="close"></i></button><h3>Group info</h3></div>
+  <div class="sb" id="ginfoBody"></div>
+</div></div>
+
+<div class="modal" id="fwdModal" hidden><div class="sheet">
+  <div class="sh"><button class="ib" data-close><i data-ic="close"></i></button><h3>Forward to…</h3></div>
+  <div class="sb">
+    <div class="fld"><input type="text" id="fwdQ" placeholder="Search chats" autocomplete="off"></div>
+    <div id="fwdList"></div>
+    <button class="btn" id="fwdSend" type="button" style="width:100%;margin-top:10px" disabled>Forward</button>
+  </div>
 </div></div>
 
 <div class="modal" id="lightbox" hidden><img alt="Photo"></div>
@@ -492,12 +545,12 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
    Step-by-step: see SETUP.md
    ===================================================================== */
 const FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyClQBWC5QxMRyGuFws2hayoYV2EPaAm7-s',
-  authDomain: 'solarr-0211.firebaseapp.com',
-  projectId: 'solarr-0211',
-  storageBucket: 'solarr-0211.firebasestorage.app',
-  messagingSenderId: '20613311806',
-  appId: '1:20613311806:web:7345c0aa0738405f75906f'
+  apiKey: "AIzaSyClQBWC5QxMRyGuFws2hayoYV2EPaAm7-s",
+  authDomain: "solarr-0211.firebaseapp.com",
+  projectId: "solarr-0211",
+  storageBucket: "solarr-0211.firebasestorage.app",
+  messagingSenderId: "20613311806",
+  appId: "1:20613311806:web:7345c0aa0738405f75906f"
 };
 // Calls: STUN works for most networks. For strict/corporate networks add a TURN server:
 //   { urls: 'turn:your.turn.host:3478', username: 'user', credential: 'pass' }
@@ -547,6 +600,8 @@ const ICONS = {
   doneall: 'M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z',
   chat: 'M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zm-4.989 9.869H7.041V11.1h6.975v1.944zm3-4H7.041V7.1h9.975v1.944z',
   down: 'M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z',
+  fwd: 'M12 8V4l8 8-8 8v-4H4V8z',
+  group: 'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z',
   reply: 'M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z',
   del: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
   copy: 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z',
@@ -643,9 +698,12 @@ const Tone = (() => {
    STORE — one tiny interface, two backends: Firestore (CLOUD) / local demo
    ===================================================================== */
 function makeLocalBackend() {
-  const KEY = 'solarr2_db';
-  const rd = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-  let cache = rd(); const subs = new Set();
+  /* each document lives under its own localStorage key, so two tabs writing different documents never overwrite each other */
+  const PFX = 'solarr2_d/', OLD = 'solarr2_db';
+  try { const old = JSON.parse(localStorage.getItem(OLD) || 'null'); if (old) { Object.entries(old).forEach(([p, v]) => localStorage.setItem(PFX + p, JSON.stringify(v))); localStorage.removeItem(OLD); } } catch {}
+  const rdAll = () => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(PFX)) { try { o[k.slice(PFX.length)] = JSON.parse(localStorage.getItem(k)); } catch {} } } return o; };
+  const rdOne = p => { try { const v = localStorage.getItem(PFX + p); return v ? JSON.parse(v) : undefined; } catch { return undefined; } };
+  let cache = rdAll(); const subs = new Set();
   const isInc = v => v && typeof v === 'object' && v.__inc !== undefined;
   const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
   const merge = (a, b) => {
@@ -658,8 +716,13 @@ function makeLocalBackend() {
     return o;
   };
   const flush = () => subs.forEach(s => s.run());
-  const wr = () => { try { localStorage.setItem(KEY, JSON.stringify(cache)); } catch { toast('Storage is full'); } flush(); };
-  window.addEventListener('storage', e => { if (e.key === KEY) { cache = rd(); flush(); } });
+  /* read-modify-write under a cross-tab lock so two tabs can't overwrite each other's changes */
+  const tx = async fn => (navigator.locks ? navigator.locks.request('solarr-db', () => fn()) : fn());
+  const put = (p, v) => {
+    try { if (v === undefined) localStorage.removeItem(PFX + p); else localStorage.setItem(PFX + p, JSON.stringify(v)); } catch { toast('Storage is full'); }
+    if (v === undefined) delete cache[p]; else cache[p] = v; flush();
+  };
+  window.addEventListener('storage', e => { if (!e.key || !e.key.startsWith(PFX)) return; const p = e.key.slice(PFX.length); if (e.newValue == null) delete cache[p]; else { try { cache[p] = JSON.parse(e.newValue); } catch { return; } } flush(); });
   const col = c => Object.keys(cache).filter(p => p.startsWith(c + '/') && !p.slice(c.length + 1).includes('/')).map(p => ({ ...cache[p], id: p.slice(c.length + 1) }));
   const query = (c, o = {}) => {
     let d = col(c);
@@ -673,11 +736,11 @@ function makeLocalBackend() {
   };
   const store = {
     get: async p => cache[p] ? { ...cache[p], id: p.split('/').pop() } : null,
-    set: async (p, d, m) => { cache[p] = m ? merge(cache[p] || {}, d) : merge({}, d); wr(); },
-    update: async (p, d) => { if (!cache[p]) throw new Error('not-found'); cache[p] = merge(cache[p], d); wr(); },
-    create: async (p, d) => { if (cache[p]) throw new Error('exists'); cache[p] = merge({}, d); wr(); },
-    remove: async p => { delete cache[p]; wr(); },
-    add: async (c, d) => { const id = uid(); cache[c + '/' + id] = merge({}, d); wr(); return id; },
+    set: (p, d, m) => tx(() => { put(p, merge(m ? (rdOne(p) || {}) : {}, d)); }),
+    update: (p, d) => tx(() => { const cur = rdOne(p); if (!cur) throw new Error('not-found'); put(p, merge(cur, d)); }),
+    create: (p, d) => tx(() => { if (rdOne(p)) throw new Error('exists'); put(p, merge({}, d)); }),
+    remove: p => tx(() => { put(p, undefined); }),
+    add: (c, d) => tx(() => { const id = uid(); put(c + '/' + id, merge({}, d)); return id; }),
     inc: n => ({ __inc: n }),
     listenDoc: (p, cb) => listen(() => cache[p] ? { ...cache[p], id: p.split('/').pop() } : null, cb),
     listenCol: (c, o, cb) => listen(() => query(c, o), cb)
@@ -772,7 +835,7 @@ function friendly(e) {
     'auth/network-request-failed': 'No connection. Check your internet.', 'auth/popup-closed-by-user': 'Sign-in was cancelled.', 'auth/cancelled-popup-request': 'Sign-in was cancelled.',
     'auth/unauthorized-domain': 'This website isn\'t in Firebase → Authentication → Settings → Authorized domains.', 'auth/operation-not-allowed': 'Turn this sign-in method on in Firebase → Authentication → Sign-in method.',
     'solarr/needs-firebase': 'Google sign-in needs Firebase. Add your config (see SETUP.md).', 'auth/account-exists-with-different-credential': 'That email already has an account with a different sign-in method. Log in with that one first.', 'auth/user-disabled': 'This account has been disabled.', 'auth/internal-error': 'Sign-in failed. Please try again.', 'auth/popup-blocked': 'Your browser blocked the sign-in pop-up. Allow pop-ups for this site and try again.', 'solarr/needs-firebase-reset': 'Password reset emails need Firebase. In demo mode, just create a new account.',
-    'permission-denied': 'Firestore denied that. Check your security rules (SETUP.md step 7).'
+    'permission-denied': 'Firestore denied that. Publish the latest firestore.rules in Firebase (SETUP.md step 8).'
   };
   return map[c] || e?.message || 'Something went wrong.';
 }
@@ -784,6 +847,16 @@ let store, auth, me = null, profile = null, users = {}, chats = [], active = nul
 let unsubs = [], userWatch = {}, msgUnsub = null, replyTo = null, unreadMarker = null, wantMark = false, seenTs = {}, sessionOn = false;
 const chatIdOf = (a, b) => [a, b].sort().join('_');
 const otherOf = c => c.members.find(x => x !== me.uid);
+const isG = c => !!(c && c.group);
+const chatTitle = c => isG(c) ? (c.name || 'Group') : nameOf(otherOf(c));
+const chatAv = (c, sz = 49) => isG(c) ? avatar({ uid: c.id, name: c.name || 'Group' }, sz) : avatar(users[otherOf(c)], sz);
+const activeChat = () => active && chats.find(x => x.id === active.id);
+const typers = c => (c?.members || []).filter(u => u !== me.uid && c.typing?.[u] && Date.now() - c.typing[u] < 5000);
+const typeLabel = (t, g) => !g ? 'typing' : (t.length > 2 ? 'Several people are' : t.map(u => nameOf(u) || 'Someone').join(' and ') + (t.length > 1 ? ' are' : ' is')) + ' typing';
+const dots = () => { const s = h('span', { class: 'dots' }); for (let i = 0; i < 3; i++) s.append(h('i', { style: `animation-delay:-${(((Date.now() - i * 150) % 1200) + 1200) % 1200}ms` })); return s; };
+const typingNode = (t, g) => h('span', { class: 'typing' }, typeLabel(t, g), dots());
+const isUnread = m => m.from !== me.uid && !m.deleted && m.type !== 'sys' && !(isG(activeChat()) ? m.readBy?.[me.uid] : m.readAt);
+const msgRead = m => { const c = activeChat(); if (isG(c)) { const o = c.members.filter(x => x !== m.from); return o.length > 0 && o.every(u => m.readBy?.[u]); } return !!m.readAt; };
 const isOnline = u => u && Date.now() - (u.lastSeen || 0) < 75000;
 function seenText(u) {
   if (!u) return '';
@@ -792,7 +865,7 @@ function seenText(u) {
   const d = dayDiff(u.lastSeen);
   return 'last seen ' + (d === 0 ? 'today at ' + fmtTime(u.lastSeen) : d === 1 ? 'yesterday at ' + fmtTime(u.lastSeen) : new Date(u.lastSeen).toLocaleDateString([], { day: 'numeric', month: 'short' }));
 }
-const preview = m => m.deleted ? '🚫 This message was deleted' : m.type === 'image' ? '📷 ' + (m.text || 'Photo') : m.type === 'gif' ? '🎞️ GIF' : m.type === 'audio' ? '🎤 Voice message' : m.type === 'call' ? (m.callType === 'video' ? '📹 Video call' : '📞 Voice call') : (m.text || '');
+const preview = m => m.deleted ? '🚫 This message was deleted' : m.type === 'sys' ? m.text : m.type === 'image' ? '📷 ' + (m.text || 'Photo') : m.type === 'gif' ? '🎞️ GIF' : m.type === 'audio' ? '🎤 Voice message' : m.type === 'call' ? (m.callType === 'video' ? '📹 Video call' : '📞 Voice call') : (m.text || '');
 
 /* ---- auth UI ---- */
 let mode = 'login', pendingSignup = null, creating = false;
@@ -805,7 +878,7 @@ function setMode(m) {
   $('tLogin').classList.toggle('on', !su); $('tSignup').classList.toggle('on', su);
   $('authBtn').textContent = su ? 'Create account' : 'Log in'; $('forgotWrap').style.display = su ? 'none' : '';
   $('authLead').textContent = su ? 'Create your account in a few seconds.' : 'Welcome back. Sign in to keep chatting.';
-  $('pass').autocomplete = su ? 'new-password' : 'current-password'; $('authErr').textContent = '';
+  $('pass').autocomplete = su ? 'new-password' : 'current-password'; $('authErr').textContent = ''; document.querySelector('label[for=email]').textContent = su ? 'Email' : 'Email or username';
 }
 $('tLogin').onclick = () => setMode('login'); $('tSignup').onclick = () => setMode('signup'); setMode('login');
 $('eye').onclick = () => { $('pass').type = $('pass').type === 'password' ? 'text' : 'password'; };
@@ -826,11 +899,21 @@ function bindUserCheck(input, hint) {
   input.addEventListener('input', () => { input.value = input.value.toLowerCase().replace(/[^a-z0-9_]/g, ''); clearTimeout(t); t = setTimeout(run, 350); });
 }
 bindUserCheck($('uname'), $('uHint')); bindUserCheck($('obUser'), $('obHint'));
+/* log in with an email OR a username: a username is looked up to find its email */
+async function resolveLogin(v) {
+  v = v.trim(); if (/^[^@\s]+@[^@\s]+$/.test(v)) return v;
+  const un = normU(v); if (!UN_RE.test(un)) throw new Error('Enter your email, or your username (letters, numbers, underscores).');
+  let rec; try { rec = await store.get('usernames/' + un); } catch (e) { throw new Error(friendly(e)); }
+  if (!rec) throw new Error(`No account with the username @${un}.`);
+  if (!rec.email) throw new Error('That username has no email saved yet. Log in with your email once and username login will work after that.');
+  return rec.email;
+}
 $('authForm').onsubmit = async e => {
   e.preventDefault(); const err = $('authErr'); err.textContent = '';
-  const email = $('email').value.trim(), pw = $('pass').value, fail = m => { err.textContent = m; shake(); };
-  if (!/^\S+@\S+\.\S+$/.test(email)) return fail('Enter a valid email address.');
+  let email = $('email').value.trim(); const pw = $('pass').value, fail = m => { err.textContent = m; shake(); };
+  if (mode === 'signup') { if (!/^\S+@\S+\.\S+$/.test(email)) return fail('Enter a valid email address.'); } else if (!email) return fail('Enter your email or username.');
   if (!pw) return fail('Enter your password.');
+  if (mode !== 'signup') { setBusy($('authBtn'), true); try { email = await resolveLogin(email); } catch (ex) { setBusy($('authBtn'), false); return fail(ex.message); } setBusy($('authBtn'), false); }
   let ps = null;
   if (mode === 'signup') {
     const name = $('dname').value.trim(), un = normU($('uname').value);
@@ -852,14 +935,14 @@ async function social() {
 }
 $('gBtn').onclick = social;
 $('forgot').onclick = async () => {
-  const em = $('email').value.trim(); if (!em) { $('authErr').textContent = 'Type your email above first.'; return; }
-  try { await auth.reset(em); $('authErr').textContent = ''; toast('Password reset email sent — check your inbox.'); } catch (ex) { $('authErr').textContent = friendly(ex); }
+  const em0 = $('email').value.trim(); if (!em0) { $('authErr').textContent = 'Type your email or username above first.'; return; }
+  try { const em = await resolveLogin(em0); await auth.reset(em); $('authErr').textContent = ''; toast('Password reset email sent — check your inbox.'); } catch (ex) { $('authErr').textContent = friendly(ex); }
 };
 $('obOut').onclick = () => auth.signOut();
 async function createProfile(name, un) {
   creating = true;
   try {
-    try { await store.create('usernames/' + un, { uid: me.uid }); } catch (ex) { creating = false; return ex.message === 'exists' ? `@${un} is already taken.` : friendly(ex); }
+    try { await store.create('usernames/' + un, { uid: me.uid, email: me.email || '' }); } catch (ex) { creating = false; return ex.message === 'exists' ? `@${un} is already taken.` : friendly(ex); }
     await store.set('users/' + me.uid, { uid: me.uid, name, username: un, about: 'Hey there! I am using Solarr.', photo: okPhoto(me.photoURL) ? me.photoURL : '', createdAt: Date.now(), lastSeen: Date.now() });
     return null;
   } catch (ex) { creating = false; return friendly(ex); }
@@ -874,7 +957,7 @@ $('obForm').onsubmit = async e => {
 /* ---- session lifecycle ---- */
 function showOnly(id) { ['boot', 'auth', 'onboard', 'app'].forEach(x => $(x).hidden = x !== id); $('galaxy').hidden = id !== 'app'; if (id !== 'app') $('aiPanel').hidden = true; }
 function onAuth(u) {
-  if (!u) { stopSession(); me = profile = null; showOnly('auth'); return; }
+  if (!u) { stopSession(); me = profile = null; setMode('login'); $('pass').value = ''; showOnly('auth'); return; }
   if (me && me.uid === u.uid) return;
   stopSession(); me = u;
   unsubs.push(store.listenDoc('users/' + u.uid, p => {
@@ -895,7 +978,7 @@ function onAuth(u) {
 function stopSession() {
   unsubs.forEach(f => { try { f(); } catch {} }); unsubs = []; Object.values(userWatch).forEach(f => f()); userWatch = {};
   if (msgUnsub) msgUnsub(); msgUnsub = null; clearInterval(hb); clearInterval(tick);
-  users = {}; nicks = {}; chats = []; active = null; msgs = []; sessionOn = false; seenTs = {}; if (typeof call !== 'undefined' && call) finishCall('ended'); $('wa').classList.remove('chatopen');
+  users = {}; nicks = {}; chats = []; active = null; msgs = []; sessionOn = false; seenTs = {}; if (typeof call !== 'undefined' && call) leaveCall('ended'); $('wa').classList.remove('chatopen');
   $('chat').hidden = true; $('empty').hidden = false; aiHist = [];
 }
 let hb, tick;
@@ -903,28 +986,29 @@ function startSession() {
   sessionOn = true; showOnly('app'); $('demoNote').hidden = CLOUD; renderMe(); renderList();
   unsubs.push(store.listenCol('chats', { where: [['members', 'array-contains', me.uid]] }, onChats));
   unsubs.push(store.listenDoc('nicknames/' + me.uid, d => { nicks = d?.map || {}; renderList(); if (active) renderHead(); if (call) updateCallUI(); }));
-  unsubs.push(store.listenCol('calls', { where: [['to', '==', me.uid]] }, docs => docs.forEach(onCallDoc)));
+  unsubs.push(store.listenCol('calls', { where: [['members', 'array-contains', me.uid]] }, onCalls));
   const beat = () => { if (!document.hidden && me) store.set('users/' + me.uid, { lastSeen: Date.now() }, true).catch(() => {}); };
   beat(); hb = setInterval(beat, 30000);
-  tick = setInterval(() => { if (active) renderHead(); renderList(); }, 4000);
+  if (profile.username && me.email) store.get('usernames/' + profile.username).then(r => { if (r && r.uid === me.uid && r.email !== me.email) store.set('usernames/' + profile.username, { email: me.email }, true).catch(() => {}); }).catch(() => {});
+  tick = setInterval(() => { if (active) { renderHead(); syncTypingBubble(); } renderList(); }, 2000);
   aiLoad(); aiMode(); aiRender(); aiChipsRender();
 }
 function watchUser(id) {
   if (userWatch[id]) return;
-  userWatch[id] = store.listenDoc('users/' + id, d => { if (d) users[id] = d; renderList(); if (active && active.other === id) renderHead(); if (call && call.peerUid === id) updateCallUI(); });
+  userWatch[id] = store.listenDoc('users/' + id, d => { const had = !!users[id]; if (d) users[id] = d; renderList(); if (active) { renderHead(); if (!had && active.group) renderMsgs(); } if (call) updateCallUI(); });
 }
 function onChats(docs) {
   const fresh = [];
   docs.forEach(c => {
-    watchUser(otherOf(c)); const lm = c.lastMsg;
+    c.members.forEach(u => u !== me.uid && watchUser(u)); const lm = c.lastMsg;
     if (lm && seenTs[c.id] === undefined) seenTs[c.id] = lm.ts;
     else if (lm && lm.ts > (seenTs[c.id] || 0)) { if (lm.from !== me.uid) fresh.push(c); seenTs[c.id] = lm.ts; }
   });
   chats = docs;
   fresh.forEach(c => {
-    const viewing = active && active.id === c.id && !document.hidden; if (!viewing) { Tone.ping(); notify(nameOf(otherOf(c)) || 'Solarr', c.lastMsg.text || 'New message'); }
+    const viewing = active && active.id === c.id && !document.hidden; if (!viewing) { Tone.ping(); notify(chatTitle(c) || 'Solarr', (isG(c) && !c.lastMsg.sys ? (nameOf(c.lastMsg.from) || 'Someone') + ': ' : '') + (c.lastMsg.text || 'New message')); }
   });
-  renderList(); if (active) { renderHead(); }
+  renderList(); if (active) { renderHead(); syncTypingBubble(); } updateJoinBtn(); refreshGroupInfo();
   const n = chats.reduce((s, c) => s + (c.unread?.[me.uid] || 0), 0); document.title = (n ? `(${n}) ` : '') + 'Solarr';
 }
 function notify(title, body) {
@@ -936,28 +1020,33 @@ function notify(title, body) {
 function renderMe() { $('meAv').textContent = ''; $('meAv').append(avatar(profile, 40)); $('meName').textContent = profile.name; $('meUser').textContent = '@' + profile.username; }
 $('meInfo').onclick = () => openSettings();
 $('meAv').onclick = () => openSettings();
-function tickIcon(m) { return h('span', { class: 'tk' + (m.readAt ? ' rd' : '') }, ic(m.readAt ? 'doneall' : 'done')); }
+function tickIcon(read) { return h('span', { class: 'tk' + (read ? ' rd' : '') }, ic(read ? 'doneall' : 'done')); }
 function renderList() {
   if (!me || !profile) return;
   const q = $('search').value.trim().toLowerCase(), box = $('list'); box.textContent = '';
-  const rows = chats.map(c => ({ c, u: users[otherOf(c)] })).filter(r => r.u && (!q || nameOf(r.u.uid).toLowerCase().includes(q) || r.u.name.toLowerCase().includes(q) || (r.u.username || '').includes(q) || (r.c.lastMsg?.text || '').toLowerCase().includes(q)))
+  const rows = chats.map(c => ({ c, u: isG(c) ? null : users[otherOf(c)] })).filter(r => (isG(r.c) || r.u) && (!q || chatTitle(r.c).toLowerCase().includes(q) || (r.u && (r.u.name.toLowerCase().includes(q) || (r.u.username || '').includes(q))) || (r.c.lastMsg?.text || '').toLowerCase().includes(q)))
     .sort((a, b) => (b.c.lastMsg?.ts || b.c.createdAt || 0) - (a.c.lastMsg?.ts || a.c.createdAt || 0));
-  if (!rows.length) { box.append(h('div', { class: 'emptylist', text: q ? 'No chats found.' : 'No chats yet. Tap the new-chat icon and enter a friend\'s username.' })); return; }
+  if (!rows.length) { box.append(h('div', { class: 'emptylist', text: q ? 'No chats found.' : 'No chats yet. Tap the new-chat icon and enter a friend\'s username, or start a group.' })); return; }
   rows.forEach(({ c, u }) => {
-    const lm = c.lastMsg, un = c.unread?.[me.uid] || 0, typing = c.typing?.[u.uid] && Date.now() - c.typing[u.uid] < 5000;
-    const p = h('div', { class: 'p' + (typing ? ' typing' : '') });
-    if (typing) p.textContent = 'typing…';
-    else if (lm) { if (lm.from === me.uid && !lm.deleted) p.append(tickIcon({ readAt: lm.readAt })); p.append(h('span', { style: 'overflow:hidden;text-overflow:ellipsis', text: lm.text })); }
-    else p.textContent = u.about || '';
-    box.append(h('div', { class: 'item' + (active && active.id === c.id ? ' on' : ''), onclick: () => openChat(u.uid) },
-      avatar(u, 49), h('div', { class: 't' },
-        h('div', { class: 'r1' }, h('div', { class: 'n', text: nameOf(u.uid) }), lm ? h('div', { class: 'tm' + (un ? ' u' : ''), text: listTime(lm.ts) }) : null),
+    const lm = c.lastMsg, un = c.unread?.[me.uid] || 0, g = isG(c), t = typers(c);
+    const p = h('div', { class: 'p' });
+    if (t.length) p.append(typingNode(t, g));
+    else if (lm) {
+      if (lm.from === me.uid && !lm.deleted && !g && !lm.sys) p.append(tickIcon(!!lm.readAt));
+      const pre = g && !lm.sys && !lm.deleted ? (lm.from === me.uid ? 'You' : (nameOf(lm.from) || '…')) + ': ' : '';
+      p.append(h('span', { style: 'overflow:hidden;text-overflow:ellipsis', text: pre + (lm.text || '') }));
+    } else p.textContent = g ? c.members.map(x => x === me.uid ? 'You' : nameOf(x) || '…').join(', ') : (u.about || '');
+    box.append(h('div', { class: 'item' + (active && active.id === c.id ? ' on' : ''), onclick: () => openChatId(c.id) },
+      chatAv(c, 49), h('div', { class: 't' },
+        h('div', { class: 'r1' }, h('div', { class: 'n', text: chatTitle(c) }), lm ? h('div', { class: 'tm' + (un ? ' u' : ''), text: listTime(lm.ts) }) : null),
         h('div', { class: 'r2' }, p, un ? h('div', { class: 'badge', text: un > 99 ? '99+' : un }) : null))));
   });
 }
 $('search').oninput = renderList;
 $('btnMenu').onclick = e => { e.stopPropagation(); $('mainMenu').hidden = !$('mainMenu').hidden; };
 document.addEventListener('click', e => { if (!e.target.closest('#mainMenu,#btnMenu')) $('mainMenu').hidden = true; if (!e.target.closest('#emoji,#emojiBtn')) $('emoji').hidden = true; if (!e.target.closest('#gifPop,#gifBtn')) $('gifPop').hidden = true; if (!e.target.closest('.mmenu,.chev')) closeMsgMenu(); });
+$('newGroupBtn').onclick = () => { closeModal('newModal'); openGroupModal(); };
+$('mGroup').onclick = () => { $('mainMenu').hidden = true; openGroupModal(); };
 $('mLogout').onclick = $('setLogout').onclick = () => { closeAll(); auth.signOut(); };
 $('mProfile').onclick = () => { $('mainMenu').hidden = true; openSettings(); };
 
@@ -1036,24 +1125,35 @@ async function openChat(other) {
   if (!users[other]) { try { const d = await store.get('users/' + other); if (d) users[other] = d; } catch {} }
   watchUser(other); const id = chatIdOf(me.uid, other);
   if (!chats.find(c => c.id === id)) { try { await store.set('chats/' + id, { members: [me.uid, other].sort(), createdAt: Date.now() }, true); } catch (e) { toast(friendly(e)); return; } }
-  if (msgUnsub) msgUnsub(); msgs = []; unreadMarker = null; wantMark = true; replyTo = null; $('replybar').hidden = true;
-  active = { id, other }; $('empty').hidden = true; $('chat').hidden = false; $('wa').classList.add('chatopen'); $('emoji').hidden = true; $('text').value = ''; autosize(); syncSend();
+  enterChat({ id, other });
+}
+function openChatId(id) { const c = chats.find(x => x.id === id); if (!c) return; if (isG(c)) enterChat({ id, group: true }); else openChat(otherOf(c)); }
+function enterChat(a) {
+  const id = a.id; if (msgUnsub) msgUnsub(); msgs = []; unreadMarker = null; wantMark = true; replyTo = null; $('replybar').hidden = true; $('gifPop').hidden = true;
+  active = a; $('empty').hidden = true; $('chat').hidden = false; $('wa').classList.add('chatopen'); $('emoji').hidden = true; $('text').value = ''; autosize(); syncSend();
   renderHead(); renderMsgs(true); renderList();
   msgUnsub = store.listenCol(`chats/${id}/messages`, { orderBy: ['ts', 'desc'], limit: 300 }, docs => {
     if (!active || active.id !== id) return; msgs = docs.slice().reverse();
-    if (wantMark) { unreadMarker = msgs.find(m => m.from !== me.uid && !m.readAt)?.id || null; wantMark = false; }
+    if (wantMark) { unreadMarker = msgs.find(isUnread)?.id || null; wantMark = false; }
     renderMsgs(); markRead();
   });
-  if (innerWidth > 760) $('text').focus();
+  updateJoinBtn(); if (innerWidth > 760) $('text').focus();
 }
 $('back').onclick = () => { active = null; if (msgUnsub) msgUnsub(); msgUnsub = null; $('chat').hidden = true; $('empty').hidden = false; $('wa').classList.remove('chatopen'); renderList(); };
+const setStatus = (key, node) => { const e = $('hStatus'); if (e.dataset.k === key) return; e.dataset.k = key; e.textContent = ''; e.append(node); };
 function renderHead() {
-  if (!active) return; const u = users[active.other]; if (!u) return;
-  $('hAv').textContent = ''; $('hAv').append(avatar(u, 40)); $('hName').textContent = nameOf(u.uid);
-  const c = chats.find(x => x.id === active.id), typing = c?.typing?.[u.uid] && Date.now() - c.typing[u.uid] < 5000;
-  $('hStatus').textContent = typing ? 'typing…' : seenText(u);
+  if (!active) return; const c = activeChat();
+  if (active.group) {
+    if (!c) return; $('hAv').textContent = ''; $('hAv').append(chatAv(c, 40)); $('hName').textContent = c.name || 'Group';
+    const t = typers(c); if (t.length) setStatus('T' + typeLabel(t, true), typingNode(t, true)); else { const txt = c.members.map(u => u === me.uid ? 'You' : nameOf(u) || '…').join(', '); setStatus('M' + txt, txt); }
+  } else {
+    const u = users[active.other]; if (!u) return;
+    $('hAv').textContent = ''; $('hAv').append(avatar(u, 40)); $('hName').textContent = nameOf(u.uid);
+    const t = typers(c); if (t.length) setStatus('Ttyping', typingNode(t, false)); else { const txt = seenText(u); setStatus('S' + txt, txt); }
+  }
+  updateJoinBtn();
 }
-$('hWho').onclick = $('hAv').onclick = () => active && showContact(active.other);
+$('hWho').onclick = $('hAv').onclick = () => active && (active.group ? showGroup(active.id) : showContact(active.other));
 function showContact(id) {
   const u = users[id]; if (!u) return; const b = $('contactBody'); b.textContent = '';
   const act = (icn, label, fn) => h('div', {}, h('button', { class: 'ib', title: label, onclick: fn }, ic(icn)), label);
@@ -1072,12 +1172,11 @@ function showContact(id) {
   openModal('contactModal');
 }
 async function markRead() {
-  if (!active || document.hidden) return; const now = Date.now();
-  const un = msgs.filter(m => m.from !== me.uid && !m.readAt && !m.deleted);
-  un.slice(-60).forEach(m => store.update(`chats/${active.id}/messages/${m.id}`, { readAt: now }).catch(() => {}));
-  const c = chats.find(x => x.id === active.id), patch = {};
+  if (!active || document.hidden) return; const now = Date.now(), c = activeChat(), g = isG(c);
+  msgs.filter(isUnread).slice(-60).forEach(m => store.set(`chats/${active.id}/messages/${m.id}`, g ? { readBy: { [me.uid]: now } } : { readAt: now }, true).catch(() => {}));
+  const patch = {};
   if (c && (c.unread?.[me.uid] || 0) > 0) patch.unread = { [me.uid]: 0 };
-  if (c?.lastMsg && c.lastMsg.from !== me.uid && !c.lastMsg.readAt) patch.lastMsg = { readAt: now };
+  if (c && !g && c.lastMsg && c.lastMsg.from !== me.uid && !c.lastMsg.readAt) patch.lastMsg = { readAt: now };
   if (c && Object.keys(patch).length) store.set('chats/' + active.id, patch, true).catch(() => {});
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { markRead(); if (me && profile) store.set('users/' + me.uid, { lastSeen: Date.now() }, true).catch(() => {}); } });
@@ -1093,17 +1192,31 @@ function renderMsgs(force) {
   msgs.forEach((m, i) => {
     const d = dayDiff(m.ts); if (d !== lastDay) { box.append(h('div', { class: 'dsep', text: dayLabel(m.ts) })); lastDay = d; }
     if (m.id === unreadMarker) box.append(h('div', { class: 'usep', text: 'Unread messages' }));
-    const prev = msgs[i - 1], first = !prev || prev.from !== m.from || m.ts - prev.ts > 300000 || dayDiff(prev.ts) !== d || m.id === unreadMarker;
+    const prev = msgs[i - 1], first = !prev || prev.type === 'sys' || prev.from !== m.from || m.ts - prev.ts > 300000 || dayDiff(prev.ts) !== d || m.id === unreadMarker;
     box.append(msgNode(m, first));
   });
+  { const c = activeChat(), r = c && typingRowEl(c); if (r) box.append(r); }
   if (near) box.scrollTop = box.scrollHeight; else box.scrollTop = top; updateToBottom();
+}
+function typingRowEl(c) {
+  const t = typers(c); if (!t.length) return null; const b = h('div', { class: 'b typb' });
+  if (isG(c)) b.append(h('span', { class: 'tn', text: t.length > 2 ? 'Several people' : t.map(u => nameOf(u) || 'Someone').join(', ') + ' ' }));
+  b.append(dots()); return h('div', { class: 'mrow in first', id: 'typRow', 'data-k': t.join() }, b);
+}
+function syncTypingBubble() {
+  const box = $('msgs'), c = activeChat(), old = $('typRow'), t = c ? typers(c) : [];
+  if (!t.length) { old?.remove(); return; } if (old && old.dataset.k === t.join()) return;
+  const near = box.scrollHeight - box.scrollTop - box.clientHeight < 160; old?.remove(); box.append(typingRowEl(c)); if (near) box.scrollTop = box.scrollHeight; updateToBottom();
 }
 const JUMBO = /^[\p{Extended_Pictographic}️‍\s]+$/u;
 function msgNode(m, first) {
   const mine = m.from === me.uid, row = h('div', { class: 'mrow ' + (mine ? 'out' : 'in') + (first ? ' first' : ''), 'data-id': m.id });
+  if (m.type === 'sys') { row.className = 'mrow sys'; row.append(h('div', { class: 'syspill', text: m.text })); return row; }
   if (m.deleted) { row.append(h('div', { class: 'b del' }, h('span', { text: '🚫 ' + (mine ? 'You deleted this message' : 'This message was deleted') }), h('span', { class: 'mt', text: fmtTime(m.ts) }))); return row; }
   const jumbo = m.type === 'text' && JUMBO.test(m.text || '') && (m.text.match(/\p{Extended_Pictographic}/gu) || []).length <= 3;
   const b = h('div', { class: 'b' + (jumbo ? ' jumbo' : '') + (selId === m.id ? ' sel' : '') });
+  if (!mine && active?.group && first && m.type !== 'call') b.append(h('div', { class: 'snd', style: `color:${COLORS[hashStr(m.from) % COLORS.length]}`, text: nameOf(m.from) || '…' }));
+  if (m.fwd) b.append(h('div', { class: 'fwd' }, ic('fwd'), 'Forwarded'));
   if (m.replyTo) b.append(h('div', { class: 'q', onclick: () => { const t = $('msgs').querySelector(`[data-id="${m.replyTo.id}"]`); t?.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, h('b', { text: m.replyTo.from === me.uid ? 'You' : nameOf(m.replyTo.from) }), h('span', { text: m.replyTo.text || '' })));
   if (m.type === 'image' && okPhoto(m.image)) b.append(h('img', { class: 'pic', src: m.image, alt: 'Photo', onclick: () => { $('lightbox').firstElementChild.src = m.image; openModal('lightbox'); } }));
   if (m.type === 'gif' && okGif(m.gif)) b.append(h('img', { class: 'pic gif', src: m.gif, alt: 'GIF', loading: 'lazy', onclick: () => { $('lightbox').firstElementChild.src = m.gif; openModal('lightbox'); } }));
@@ -1114,10 +1227,10 @@ function msgNode(m, first) {
     if (m.status === 'ended') sub = fmtDur(m.duration || 0);
     else if (m.status === 'missed') { title = mine ? (vid ? 'Video' : 'Voice') + ' call' : 'Missed ' + (vid ? 'video' : 'voice') + ' call'; sub = mine ? 'No answer' : 'Tap to call back'; }
     else if (m.status === 'declined') sub = mine ? 'Declined' : 'You declined'; else if (m.status === 'busy') sub = 'Busy';
-    const el = h('div', { class: 'call' + (miss && !mine ? ' miss' : ''), style: 'cursor:pointer', onclick: () => startCall(active.other, m.callType) }, h('div', { class: 'ci' }, ic(vid ? 'video' : 'call')), h('div', {}, h('div', { text: title }), h('small', { text: sub })));
+    const el = h('div', { class: 'call' + (miss && !mine ? ' miss' : ''), style: 'cursor:pointer', onclick: () => callActive(m.callType) }, h('div', { class: 'ci' }, ic(vid ? 'video' : 'call')), h('div', {}, h('div', { text: title }), h('small', { text: sub })));
     b.append(el);
   } else if (m.text) { const t = h('span', { class: 'txt' }); rich(t, m.text); b.append(t); }
-  const mt = h('span', { class: 'mt' }, h('span', { text: fmtTime(m.ts) })); if (mine) mt.append(tickIcon(m)); b.append(mt);
+  const mt = h('span', { class: 'mt' }, h('span', { text: fmtTime(m.ts) })); if (mine) mt.append(tickIcon(msgRead(m))); b.append(mt);
   if (!jumbo) b.append(h('button', { class: 'chev', title: 'Options', onclick: e => { e.stopPropagation(); openMsgMenu(m, b, mine); } }, ic('down')));
   row.append(b);
   const rs = {}; Object.entries(m.reactions || {}).forEach(([u, em]) => { if (em) (rs[em] = rs[em] || []).push(u); });
@@ -1130,6 +1243,7 @@ function openMsgMenu(m, anchor, mine) {
   menu.append(h('div', { class: 'qr' }, ['👍', '❤️', '😂', '😮', '😢', '🙏'].map(em => h('button', { text: em, onclick: () => { closeMsgMenu(); react(m, em); } }))));
   const item = (icn, label, fn, cls = '') => h('button', { class: cls, onclick: () => { closeMsgMenu(); fn(); } }, ic(icn), label);
   menu.append(item('reply', 'Reply', () => startReply(m)));
+  if (m.type !== 'call') menu.append(item('fwd', 'Forward', () => openForward(m)));
   if (m.text) menu.append(item('copy', 'Copy', () => navigator.clipboard?.writeText(m.text).then(() => toast('Copied'), () => toast('Couldn\'t copy'))));
   if (mine) menu.append(item('del', 'Delete for everyone', () => { if (confirm('Delete this message for everyone?')) delMsg(m); }, 'red'));
   anchor.append(menu); anchor.style.position = 'relative';
@@ -1139,7 +1253,7 @@ async function react(m, em) {
 }
 async function delMsg(m) {
   try {
-    await store.set(`chats/${active.id}/messages/${m.id}`, { deleted: true, text: '', image: null, audio: null, replyTo: null, reactions: {} }, true);
+    await store.set(`chats/${active.id}/messages/${m.id}`, { deleted: true, text: '', image: null, audio: null, gif: null, fwd: null, replyTo: null, reactions: {} }, true);
     const c = chats.find(x => x.id === active.id); if (c?.lastMsg?.ts === m.ts) await store.set('chats/' + active.id, { lastMsg: { text: '🚫 This message was deleted', deleted: true } }, true);
   } catch (e) { toast(friendly(e)); }
 }
@@ -1150,14 +1264,19 @@ function updateToBottom() { const b = $('msgs'); $('toBottom').hidden = b.scroll
 $('toBottom').onclick = () => $('msgs').scrollTo({ top: $('msgs').scrollHeight, behavior: 'smooth' });
 
 /* ---- sending ---- */
-async function sendMsg(payload) {
-  if (!active) return; const ts = Date.now(), other = active.other, id = active.id;
-  const m = { from: me.uid, ts, ...payload }; if (replyTo && payload.type !== 'call') { m.replyTo = { id: replyTo.id, from: replyTo.from, text: preview(replyTo).slice(0, 120) }; }
+async function sendTo(chat, payload, reply) {
+  if (chat.id === active?.id) lastTyping = 0;
+  const ts = Date.now(), id = chat.id, m = { from: me.uid, ts, ...payload }, unread = {};
+  if (reply && payload.type !== 'call' && payload.type !== 'sys') m.replyTo = { id: reply.id, from: reply.from, text: preview(reply).slice(0, 120) };
+  chat.members.forEach(o => { if (o !== me.uid) unread[o] = store.inc(1); });
   try {
-    await store.set('chats/' + id, { members: [me.uid, other].sort(), lastMsg: { from: me.uid, ts, text: preview(m), readAt: null }, unread: { [other]: store.inc(1) }, typing: { [me.uid]: 0 } }, true);
+    await store.set('chats/' + id, { ...(chat.group ? {} : { members: chat.members }), lastMsg: { from: me.uid, ts, text: preview(m), readAt: null, deleted: false, sys: payload.type === 'sys' }, unread, typing: { [me.uid]: 0 } }, true);
     await store.add(`chats/${id}/messages`, m);
   } catch (e) { toast(friendly(e)); }
-  replyTo = null; $('replybar').hidden = true;
+}
+async function sendMsg(payload) {
+  if (!active) return; const c = activeChat() || (active.group ? null : { id: active.id, members: [me.uid, active.other].sort() }); if (!c) return;
+  const r = replyTo; replyTo = null; $('replybar').hidden = true; await sendTo(c, payload, r);
 }
 function sendText() { const t = $('text').value.trim(); if (!t || !active) return; $('text').value = ''; autosize(); syncSend(); selId = null; sendMsg({ type: 'text', text: t }); }
 function autosize() { const t = $('text'); t.style.height = '42px'; t.style.height = Math.min(120, t.scrollHeight) + 'px'; }
@@ -1166,6 +1285,7 @@ let lastTyping = 0;
 $('text').addEventListener('input', () => {
   autosize(); syncSend();
   if (active && Date.now() - lastTyping > 2500 && $('text').value.trim()) { lastTyping = Date.now(); store.set('chats/' + active.id, { typing: { [me.uid]: Date.now() } }, true).catch(() => {}); }
+  else if (active && lastTyping && !$('text').value.trim()) { lastTyping = 0; store.set('chats/' + active.id, { typing: { [me.uid]: 0 } }, true).catch(() => {}); }
 });
 $('text').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendText(); } });
 $('sendBtn').onclick = sendText;
@@ -1183,6 +1303,80 @@ chatEl.addEventListener('dragover', e => e.preventDefault());
 chatEl.addEventListener('drop', e => { e.preventDefault(); dragN = 0; $('drop').hidden = true; const f = [...e.dataTransfer.files].find(x => x.type.startsWith('image/')); if (f) sendImageFile(f); });
 '😀 😁 😂 🤣 😊 😍 😘 😎 🤔 😅 😭 😡 😴 🥳 🤩 😇 🙃 😉 😬 🙄 😤 🥺 🤗 🫡 👍 👎 👏 🙌 🙏 💪 👋 🤝 ❤️ 🧡 💛 💚 💙 💜 🖤 💔 🔥 ✨ ⭐ ☀️ 🌈 🌊 🎉 🎁 🍕 🍔 🍟 ☕ 🍺 🍰 🐶 🐱 🦊 🐼 🐢 🌸 🌴 ⚽ 🏀 🎮 🎧 📷 🚀 ✈️ 🏖️ 💯 ✅ ❌ ❓ 👀 🤞 🤙'.split(' ').forEach(em => $('emoji').append(h('button', { type: 'button', text: em, onclick: () => { const t = $('text'), s = t.selectionStart ?? t.value.length; t.value = t.value.slice(0, s) + em + t.value.slice(t.selectionEnd ?? s); t.focus(); t.selectionStart = t.selectionEnd = s + em.length; t.dispatchEvent(new Event('input')); } })));
 $('emojiBtn').onclick = e => { e.stopPropagation(); $('emoji').hidden = !$('emoji').hidden; $('gifPop').hidden = true; };
+
+/* ---- groups ---- */
+let gSel = new Set();
+function openGroupModal() { gSel = new Set(); $('gName').value = ''; $('gUser').value = ''; $('gErr').textContent = ''; renderGPick(); openModal('groupModal'); setTimeout(() => $('gName').focus(), 50); }
+const syncGCount = () => { $('gCreate').textContent = gSel.size ? `Create group (${gSel.size + 1} people)` : 'Create group'; };
+function renderGPick() {
+  const box = $('gList'); box.textContent = ''; const l = Object.values(users).filter(u => u.uid !== me.uid).sort((a, b) => dn(a).localeCompare(dn(b)));
+  if (!l.length) box.append(h('p', { class: 'sub', style: 'font-size:13px;line-height:1.5', text: 'You haven\'t chatted with anyone yet. Add people by username below.' }));
+  syncGCount(); l.forEach(u => { const cb = h('input', { type: 'checkbox' }); cb.checked = gSel.has(u.uid); cb.onchange = () => { cb.checked ? gSel.add(u.uid) : gSel.delete(u.uid); syncGCount(); }; box.append(h('label', { class: 'prow' }, avatar(u, 40), h('div', { class: 't' }, h('b', { text: dn(u) }), h('small', { text: '@' + u.username })), cb)); });
+}
+$('gAddForm').onsubmit = async e => {
+  e.preventDefault(); const err = $('gErr'); err.textContent = ''; const un = normU($('gUser').value); if (!un) return;
+  if (un === profile.username) { err.textContent = 'You\'re already in the group.'; return; }
+  try { const u = await lookupUser(un); if (!u) { err.textContent = `No one is signed up as "${un}".`; return; } users[u.uid] = u; watchUser(u.uid); gSel.add(u.uid); $('gUser').value = ''; renderGPick(); } catch (ex) { err.textContent = friendly(ex); }
+};
+$('gCreate').onclick = async () => {
+  const name = $('gName').value.trim(), err = $('gErr'); err.textContent = '';
+  if (!name) { err.textContent = 'Give the group a name.'; return; } if (!gSel.size) { err.textContent = 'Pick at least one person.'; return; } if (gSel.size > 49) { err.textContent = 'Groups can have up to 50 people.'; return; }
+  const id = 'g_' + uid(), members = [me.uid, ...gSel], doc = { group: true, name: name.slice(0, 40), members, createdBy: me.uid, createdAt: Date.now() };
+  setBusy($('gCreate'), true);
+  try {
+    await store.set('chats/' + id, doc); if (!chats.find(c => c.id === id)) chats = [...chats, { id, ...doc }];
+    await sendTo({ id, members, group: true }, { type: 'sys', text: `${profile.name} created the group “${doc.name}”` });
+    closeModal('groupModal'); enterChat({ id, group: true });
+  } catch (ex) { err.textContent = friendly(ex); }
+  setBusy($('gCreate'), false);
+};
+let ginfoKey = '';
+function refreshGroupInfo() { if ($('ginfoModal').hidden) return; const id = $('ginfoBody').dataset.id, c = chats.find(x => x.id === id); if (!c) { closeModal('ginfoModal'); return; } if (c.members.join() + '|' + c.name !== ginfoKey) showGroup(id); }
+function showGroup(id) {
+  const c = chats.find(x => x.id === id); if (!c) return; const b = $('ginfoBody'); b.textContent = ''; b.dataset.id = id; ginfoKey = c.members.join() + '|' + c.name; const creator = c.createdBy === me.uid;
+  const nin = h('input', { type: 'text', maxlength: '40', value: c.name || '' });
+  const rename = async () => { const v = nin.value.trim().slice(0, 40); if (!v || v === c.name) return; try { await store.set('chats/' + id, { name: v }, true); await sendTo(c, { type: 'sys', text: `${profile.name} renamed the group to “${v}”` }); toast('Group renamed'); } catch (e) { toast(friendly(e)); } };
+  nin.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); rename(); } });
+  const addUser = async u => { const members = [...c.members, u.uid]; try { await store.set('chats/' + id, { members }, true); await sendTo({ ...c, members }, { type: 'sys', text: `${profile.name} added ${u.name}` }); } catch (e) { toast(friendly(e)); } };
+  const removeUser = async uidx => { if (!confirm('Remove ' + (nameOf(uidx) || 'this person') + ' from the group?')) return; const members = c.members.filter(x => x !== uidx); try { await sendTo(c, { type: 'sys', text: `${profile.name} removed ${users[uidx]?.name || 'someone'}` }); await store.set('chats/' + id, { members }, true); } catch (e) { toast(friendly(e)); } };
+  const leave = async () => {
+    if (!confirm('Leave this group? You won\'t get its messages any more.')) return;
+    try { await sendTo(c, { type: 'sys', text: `${profile.name} left` }); await store.set('chats/' + id, { members: c.members.filter(x => x !== me.uid) }, true); } catch (e) { toast(friendly(e)); return; }
+    closeModal('ginfoModal'); chats = chats.filter(x => x.id !== id); if (active?.id === id) $('back').onclick(); renderList();
+  };
+  const act = (icn, label, fn) => h('div', {}, h('button', { class: 'ib', title: label, onclick: fn }, ic(icn)), label);
+  const addable = Object.values(users).filter(u => u.uid !== me.uid && !c.members.includes(u.uid));
+  const addForm = h('form', { style: 'display:flex;gap:8px;margin-top:8px', onsubmit: async e => { e.preventDefault(); const un = normU(ain.value); if (!un) return; try { const u = await lookupUser(un); if (!u) { toast(`No one is signed up as "${un}".`); return; } if (c.members.includes(u.uid)) { toast('Already in the group.'); return; } users[u.uid] = u; watchUser(u.uid); await addUser(u); } catch (ex) { toast(friendly(ex)); } } });
+  const ain = h('input', { type: 'text', placeholder: 'Add by username', maxlength: '21', autocapitalize: 'none', autocomplete: 'off' }); addForm.append(ain, h('button', { class: 'btn', style: 'padding:0 16px', text: 'Add' }));
+  b.append(h('div', { style: 'display:flex;justify-content:center;margin:6px 0 10px' }, chatAv(c, 96)), h('div', { style: 'text-align:center;font-size:21px;font-weight:600', text: c.name || 'Group' }), h('div', { class: 'sub', style: 'text-align:center', text: c.members.length + ' people' }),
+    h('div', { class: 'cbtns' }, act('chat', 'Message', () => { closeModal('ginfoModal'); }), act('call', 'Voice', () => { closeModal('ginfoModal'); startCallIn(c, 'audio'); }), act('video', 'Video', () => { closeModal('ginfoModal'); startCallIn(c, 'video'); })),
+    h('div', { class: 'sub', style: 'font-size:12.5px;margin:6px 0' , text: 'Group name' }), h('div', { style: 'display:flex;gap:8px' }, nin, h('button', { class: 'btn', style: 'padding:0 16px', onclick: rename, text: 'Save' })),
+    h('h4', { text: 'Members' }),
+    ...c.members.map(u => { const usr = users[u] || { uid: u, name: '…' }; return h('div', { class: 'prow', style: 'cursor:default' }, avatar(usr, 40), h('div', { class: 't' }, h('b', { text: (u === me.uid ? 'You' : dn(usr)) + (u === c.createdBy ? ' · creator' : '') }), h('small', { text: usr.username ? '@' + usr.username : '' })), creator && u !== me.uid ? h('button', { class: 'btn ghost', onclick: () => removeUser(u), text: 'Remove' }) : null); }),
+    h('h4', { text: 'Add people' }),
+    ...addable.map(u => h('div', { class: 'prow', style: 'cursor:default' }, avatar(u, 40), h('div', { class: 't' }, h('b', { text: dn(u) }), h('small', { text: '@' + u.username })), h('button', { class: 'btn', onclick: () => addUser(u), text: 'Add' }))), addForm,
+    h('button', { class: 'btn ghost', style: 'width:100%;margin-top:18px;color:var(--danger)', onclick: leave, text: 'Leave group' }));
+  openModal('ginfoModal');
+}
+
+/* ---- forward ---- */
+let fwdMsg = null, fwdSel = new Set();
+function openForward(m) { fwdMsg = m; fwdSel = new Set(); $('fwdQ').value = ''; renderFwd(); openModal('fwdModal'); }
+function renderFwd() {
+  const q = $('fwdQ').value.trim().toLowerCase(), box = $('fwdList'); box.textContent = '';
+  const l = chats.filter(c => (isG(c) || users[otherOf(c)]) && (!q || chatTitle(c).toLowerCase().includes(q))).sort((a, b) => (b.lastMsg?.ts || 0) - (a.lastMsg?.ts || 0));
+  if (!l.length) box.append(h('p', { class: 'sub', style: 'font-size:13px', text: 'No chats found.' }));
+  l.forEach(c => { const cb = h('input', { type: 'checkbox' }); cb.checked = fwdSel.has(c.id); cb.onchange = () => { cb.checked ? fwdSel.add(c.id) : fwdSel.delete(c.id); syncFwd(); }; box.append(h('label', { class: 'prow', 'data-chat': c.id }, chatAv(c, 40), h('div', { class: 't' }, h('b', { text: chatTitle(c) }), h('small', { text: isG(c) ? 'Group · ' + c.members.length + ' people' : '@' + (users[otherOf(c)]?.username || '') })), cb)); });
+  syncFwd();
+}
+function syncFwd() { const b = $('fwdSend'); b.disabled = !fwdSel.size; b.textContent = fwdSel.size ? `Forward to ${fwdSel.size} chat${fwdSel.size > 1 ? 's' : ''}` : 'Forward'; }
+$('fwdQ').oninput = renderFwd;
+$('fwdSend').onclick = async () => {
+  if (!fwdMsg || !fwdSel.size) return; const m = fwdMsg, ids = [...fwdSel]; setBusy($('fwdSend'), true);
+  const pay = { type: m.type, fwd: true }; ['text', 'image', 'gif', 'audio'].forEach(k => { if (m[k]) pay[k] = m[k]; });
+  for (const id of ids) { const c = chats.find(x => x.id === id); if (c) await sendTo(c, pay); }
+  setBusy($('fwdSend'), false); closeModal('fwdModal'); toast(ids.length > 1 ? `Forwarded to ${ids.length} chats` : 'Message forwarded');
+};
 
 /* GIFs (GIPHY) */
 const okGif = u => typeof u === 'string' && /^https:\/\/([a-z0-9-]+\.)*giphy\.com\//i.test(u);
@@ -1220,113 +1414,206 @@ $('recCancel').onclick = () => { if (rec) { rec.send = false; rec.mr.stop(); } }
 $('recSend').onclick = () => { if (rec) { rec.send = true; rec.mr.stop(); } };
 
 /* =====================================================================
-   CALLS (WebRTC) — voice, video, screen share. Signalling via the store.
+   CALLS (WebRTC mesh) — voice, video, screen share, 1-to-1 and group.
+   Signalling goes through the store: calls/{id} (who is in the call) and
+   calls/{id}/signals (offers, answers and ICE candidates, one pair at a time).
    ===================================================================== */
-let call = null, incoming = null; const seenCalls = new Set();
+let call = null, incoming = null, liveCalls = {}; const seenCalls = new Set();
+const MAX_CALL = 6, RING_MS = 45000;
 const camOK = () => !!navigator.mediaDevices?.getUserMedia && !!window.RTCPeerConnection;
-function makePC() {
-  const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+const partOf = d => Object.keys(d?.participants || {}).filter(u => d.participants[u]);
+const callPeerUid = () => call.members.find(u => u !== me.uid);
+const peerList = () => call ? partOf(call.doc).filter(u => u !== me.uid) : [];
+function newCall(id, type, chat, role) {
+  return { id, type, role, chatId: chat.id, group: !!chat.group, members: chat.members.slice(), name: chat.name || '', status: 'Calling…', unsubs: [], peers: {}, tiles: {}, doc: null, seen: new Set(), sigN: 0, hadPeer: false, joined: false, nonce: uid() };
+}
+function newPeer(u, nonce) { return { uid: u, nonce, pc: null, stream: null, pending: [], offerer: false, inDoc: false, reconnecting: false }; }
+function sendSig(p, kind, data) {
+  if (!call) return; const id = call.id;
+  store.add(`calls/${id}/signals`, { from: me.uid, to: p.uid, kind, data, fromN: call.nonce, toN: p.nonce, ts: Date.now(), n: ++call.sigN }).catch(e => console.warn('signal', e.code || e.message));
+}
+function peerPC(p) {
+  if (p.pc) return p.pc;
+  const pc = p.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+  call.local.getAudioTracks().forEach(t => pc.addTrack(t, call.local));
+  const vt = call.screen?.getVideoTracks()[0] || call.cam;
+  if (vt) pc.addTrack(vt, call.local); else if (p.offerer) pc.addTransceiver('video', { direction: 'sendrecv' });
+  pc.onicecandidate = e => e.candidate && sendSig(p, 'cand', e.candidate.toJSON());
   pc.ontrack = e => {
-    const rs = call.remote || (call.remote = new MediaStream());
+    const rs = p.stream || (p.stream = new MediaStream());
     (e.streams[0] ? e.streams[0].getTracks() : [e.track]).forEach(t => { if (!rs.getTracks().includes(t)) rs.addTrack(t); });
-    $('remoteV').srcObject = rs; $('remoteV').play?.().catch(() => {}); updateCallUI();
+    updateCallUI();
   };
   pc.onconnectionstatechange = () => {
-    if (!call) return; const s = pc.connectionState;
-    if (s === 'connected') { if (!call.startedAt) { call.startedAt = Date.now(); Tone.stop(); call.timer = setInterval(updateCallUI, 1000); } call.reconnecting = false; updateCallUI(); }
-    else if (s === 'disconnected') { call.reconnecting = true; updateCallUI(); }
-    else if (s === 'failed') { toast('The call connection was lost.'); finishCall(call.startedAt ? 'ended' : 'missed'); }
+    if (!call || call.peers[p.uid] !== p) return; const s = pc.connectionState;
+    if (s === 'connected') {
+      p.reconnecting = false;
+      if (!call.startedAt) { call.startedAt = Date.now(); Tone.stop(); clearTimeout(call.ringTimer); call.timer = setInterval(updateCallUI, 1000); }
+      if (!call.doc?.connectedAt) store.set('calls/' + call.id, { connectedAt: Date.now(), status: 'active' }, true).catch(() => {});
+      updateCallUI();
+    } else if (s === 'disconnected') { p.reconnecting = true; updateCallUI(); }
+    else if (s === 'failed') { toast('The call connection was lost.'); closePeer(p.uid); if (!call.group) leaveCall('ended', true); }
   };
   return pc;
 }
-function candSender(id, side) {
-  const q = []; let ready = false;
-  return { push(c) { if (ready) store.add(`calls/${id}/${side}`, c).catch(() => {}); else q.push(c); }, go() { ready = true; q.splice(0).forEach(c => store.add(`calls/${id}/${side}`, c).catch(() => {})); } };
+function closePeer(u) { const p = call?.peers[u]; if (!p) return; delete call.peers[u]; try { p.pc?.close(); } catch {} updateCallUI(); }
+async function makeOffer(p) {
+  p.offerer = true; const pc = peerPC(p);
+  try { const o = await pc.createOffer(); await pc.setLocalDescription(o); sendSig(p, 'offer', { type: o.type, sdp: o.sdp }); } catch (e) { console.warn(e); }
+}
+function flushPeer(p) { p.pending.splice(0).forEach(c => p.pc?.addIceCandidate(c).catch(() => {})); }
+async function onSignal(s) {
+  if (!call || s.toN !== call.nonce) return;
+  let p = call.peers[s.from];
+  if (p && p.nonce !== s.fromN) { if (s.kind === 'offer') { closePeer(s.from); p = null; } else return; }
+  if (!p) p = call.peers[s.from] = newPeer(s.from, s.fromN);
+  if (s.kind === 'offer') {
+    const pc = peerPC(p);
+    try {
+      await pc.setRemoteDescription(s.data); flushPeer(p);
+      pc.getTransceivers().forEach(t => { if (t.receiver.track.kind === 'video' && t.direction !== 'sendrecv') t.direction = 'sendrecv'; });
+      const ans = await pc.createAnswer(); await pc.setLocalDescription(ans); sendSig(p, 'answer', { type: ans.type, sdp: ans.sdp });
+    } catch (e) { console.warn(e); }
+  } else if (s.kind === 'answer') {
+    if (p.pc && p.pc.signalingState === 'have-local-offer') { try { await p.pc.setRemoteDescription(s.data); flushPeer(p); } catch (e) { console.warn(e); } }
+  } else if (s.kind === 'cand') {
+    if (p.pc?.remoteDescription) p.pc.addIceCandidate(s.data).catch(() => {}); else p.pending.push(s.data);
+  }
+}
+function syncPeers(d) {
+  const part = d.participants || {}, present = partOf(d).filter(u => u !== me.uid);
+  Object.keys(call.peers).forEach(u => {
+    const p = call.peers[u];
+    if (part[u] ? p.nonce !== part[u] : p.inDoc) closePeer(u);
+  });
+  present.forEach(u => {
+    let p = call.peers[u]; if (!p) p = call.peers[u] = newPeer(u, part[u]);
+    p.inDoc = true; call.hadPeer = true;
+    if (!p.pc && me.uid > u && !p.offerer) makeOffer(p);
+  });
+  if (!call.startedAt && present.length) { call.status = 'Connecting…'; Tone.stop(); }
 }
 function watchCall(id) {
-  call.unsubs.push(store.listenDoc('calls/' + id, async d => {
-    if (!d || !call || call.id !== id) return;
-    if (call.role === 'caller' && d.answer && !call.answered) { call.answered = true; try { await call.pc.setRemoteDescription(d.answer); flushRemote(); } catch (e) { console.warn(e); } call.status = 'Connecting…'; updateCallUI(); }
-    const ps = !!d.sharing?.[call.peerUid]; if (ps !== call.peerShare) { call.peerShare = ps; updateCallUI(); }
-    if (['declined', 'ended', 'missed', 'busy'].includes(d.status)) finishCall(d.status, true);
+  call.unsubs.push(store.listenDoc('calls/' + id, d => {
+    if (!call || call.id !== id) return;
+    if (!d) { if (call.joined) leaveCall('ended', true); return; }
+    call.doc = d; syncPeers(d);
+    const present = partOf(d).filter(u => u !== me.uid), others = call.members.filter(u => u !== me.uid);
+    if (!call.group && call.hadPeer && !present.length) { leaveCall('ended', true); return; }
+    if (call.role === 'caller' && !call.hadPeer && !present.length && others.length && others.every(u => d.declined?.[u])) { leaveCall(others.every(u => d.busy?.[u]) ? 'busy' : 'declined', true); return; }
+    updateCallUI();
+  }));
+  call.unsubs.push(store.listenCol(`calls/${id}/signals`, { where: [['to', '==', me.uid]] }, docs => {
+    if (!call || call.id !== id) return;
+    docs.filter(s => !call.seen.has(s.id)).sort((a, b) => (a.ts - b.ts) || ((a.n || 0) - (b.n || 0))).forEach(s => { call.seen.add(s.id); onSignal(s); });
   }));
 }
-function watchCands(id, side) {
-  const seen = new Set();
-  call.unsubs.push(store.listenCol(`calls/${id}/${side}`, {}, docs => docs.forEach(c => {
-    if (seen.has(c.id) || !call || call.id !== id) return; seen.add(c.id);
-    const { id: _i, ...cand } = c; if (call.pc.remoteDescription) call.pc.addIceCandidate(cand).catch(() => {}); else call.pendingRemote.push(cand);
-  })));
-}
-function flushRemote() { if (!call) return; call.pendingRemote.splice(0).forEach(c => call.pc.addIceCandidate(c).catch(() => {})); }
 async function getMedia(video) {
   try { return await navigator.mediaDevices.getUserMedia({ audio: true, video: video ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false }); }
   catch (e) { toast(video ? 'Allow camera and microphone to make video calls.' : 'Allow the microphone to make calls.'); return null; }
 }
-async function startCall(peerUid, type) {
+function attachLocal(local) { call.local = local; call.cam = local.getVideoTracks()[0] || null; }
+
+/* start a call in a chat (1-to-1 or group) */
+async function startCallIn(chat, type) {
   if (!camOK()) { toast('Calls aren\'t supported in this browser.'); return; }
   if (call || incoming) { toast('You\'re already in a call.'); return; }
-  const peer = users[peerUid]; if (!peer) return;
-  if (!active || active.other !== peerUid) await openChat(peerUid);
-  const id = uid(); call = { id, role: 'caller', type, peerUid, status: 'Calling…', unsubs: [], pendingRemote: [], peerShare: false };
+  const id = uid(); call = newCall(id, type, chat, 'caller'); call.callerUid = me.uid; call.status = chat.group ? 'Ringing…' : 'Calling…';
   showCallUI(); Tone.start('out');
   const local = await getMedia(type === 'video'); if (!local) { cleanupCall(); return; }
   if (!call || call.id !== id) { local.getTracks().forEach(t => t.stop()); return; }
-  call.local = local; call.cam = local.getVideoTracks()[0] || null; updateCallUI();
-  const pc = call.pc = makePC(); local.getTracks().forEach(t => pc.addTrack(t, local));
-  if (type !== 'video') pc.addTransceiver('video', { direction: 'sendrecv' });
-  const sender = candSender(id, 'callerCandidates'); pc.onicecandidate = e => e.candidate && sender.push(e.candidate.toJSON());
+  attachLocal(local); updateCallUI();
   try {
-    const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
-    await store.set('calls/' + id, { from: me.uid, to: peerUid, fromName: profile.name, type, status: 'ringing', ts: Date.now(), offer: { type: offer.type, sdp: offer.sdp } });
-    sender.go(); watchCall(id); watchCands(id, 'calleeCandidates');
-    call.ringTimer = setTimeout(() => { if (call && call.id === id && !call.startedAt) { toast('No answer.'); finishCall('missed'); } }, 45000);
+    await store.set('calls/' + id, { from: me.uid, fromName: profile.name, members: call.members, chatId: chat.id, group: !!chat.group, groupName: chat.group ? (chat.name || '') : '', type, status: 'ringing', ts: Date.now(), participants: { [me.uid]: call.nonce } });
+    call.joined = true; seenCalls.add(id); watchCall(id);
+    call.ringTimer = setTimeout(() => { if (call && call.id === id && !call.startedAt && !peerList().length) { toast('No answer.'); leaveCall('missed'); } }, RING_MS);
   } catch (e) { console.warn(e); toast(friendly(e)); cleanupCall(); }
 }
-function onCallDoc(c) {
-  if (c.status === 'ringing' && Date.now() - c.ts < 45000) {
-    if (seenCalls.has(c.id)) return; seenCalls.add(c.id);
-    if (call || incoming) { store.update('calls/' + c.id, { status: 'busy' }).catch(() => {}); return; }
-    showIncoming(c);
-  } else if (incoming && incoming.id === c.id && c.status !== 'ringing' && c.status !== 'accepted') {
-    const n = nameOf(c.from) || c.fromName || 'Someone'; hideIncoming(); if (c.status === 'missed' || c.status === 'ended') toast(`Missed ${c.type} call from ${n}`);
-  }
+async function startCall(peerUid, type) {
+  if (call || incoming) { toast('You\'re already in a call.'); return; }
+  if (!users[peerUid]) return; if (!active || active.other !== peerUid) await openChat(peerUid);
+  startCallIn({ id: chatIdOf(me.uid, peerUid), members: [me.uid, peerUid].sort(), group: false }, type);
 }
+function callActive(type) {
+  if (!active) return; const c = activeChat();
+  if (active.group) { if (c) startCallIn(c, type); } else startCall(active.other, type);
+}
+/* join a call someone else started (accepting a ring, or the Join button) */
+async function joinCall(d) {
+  if (call) return;
+  if (partOf(d).length >= MAX_CALL) { toast(`This call is full (${MAX_CALL} people).`); return; }
+  call = newCall(d.id, d.type, { id: d.chatId, group: d.group, members: d.members, name: d.groupName }, 'joiner'); call.callerUid = d.from; call.status = 'Connecting…';
+  d.members.forEach(u => u !== me.uid && !users[u] && watchUser(u));
+  showCallUI(); openChatId(d.chatId);
+  const local = await getMedia(d.type === 'video');
+  if (!local) { try { await store.set('calls/' + d.id, { declined: { [me.uid]: true } }, true); } catch {} if (call && call.id === d.id) cleanupCall(); return; }
+  if (!call || call.id !== d.id) { local.getTracks().forEach(t => t.stop()); return; }
+  attachLocal(local); updateCallUI();
+  try {
+    await store.set('calls/' + d.id, { participants: { [me.uid]: call.nonce }, status: 'active', declined: { [me.uid]: null }, ...(d.connectedAt ? {} : { connectedAt: Date.now() }) }, true);
+    call.joined = true; seenCalls.add(d.id); watchCall(d.id);
+  } catch (e) { console.warn(e); toast('Couldn\'t join the call.'); cleanupCall(); }
+}
+
+/* the calls I'm invited to: ringing, plus "Join" for calls already running */
+function onCalls(docs) {
+  const now = Date.now(), live = {};
+  docs.forEach(c => {
+    if (!c.members?.includes(me.uid) || c.status === 'ended' || !partOf(c).length || now - c.ts > 4 * 36e5) return;
+    live[c.id] = c;
+  });
+  liveCalls = {}; Object.values(live).forEach(c => { liveCalls[c.chatId] = c; });
+  if (incoming) { const c = live[incoming.id]; if (!c || c.participants?.[me.uid] || c.declined?.[me.uid]) { const n = nameOf(incoming.from) || incoming.fromName || 'Someone', was = incoming; hideIncoming(); if (!c) toast(`Missed ${was.type} call from ${n}`); } }
+  Object.values(live).forEach(c => {
+    if (c.from === me.uid || c.participants?.[me.uid] || c.declined?.[me.uid] || seenCalls.has(c.id) || now - c.ts > RING_MS) return;
+    seenCalls.add(c.id);
+    if (call || incoming) { store.set('calls/' + c.id, { declined: { [me.uid]: true }, busy: { [me.uid]: true } }, true).catch(() => {}); return; }
+    showIncoming(c);
+  });
+  updateJoinBtn();
+}
+function updateJoinBtn() {
+  const c = active && liveCalls[active.id], b = $('btnJoin'); b.hidden = !(c && !call && !incoming);
+  if (!b.hidden) b.textContent = (c.group ? 'Join ' : 'Join ') + (c.type === 'video' ? 'video call' : 'call');
+}
+$('btnJoin').onclick = () => { const c = active && liveCalls[active.id]; if (c) joinCall(c); };
 function showIncoming(c) {
-  incoming = c; if (!users[c.from]) watchUser(c.from);
-  const u = users[c.from] || { uid: c.from, name: c.fromName || 'Someone' };
-  $('inAv').textContent = ''; $('inAv').append(avatar(u, 120)); $('inName').textContent = dn(u); $('inType').textContent = c.type === 'video' ? 'Solarr video call…' : 'Solarr voice call…';
+  incoming = c; c.members.forEach(u => u !== me.uid && !users[u] && watchUser(u));
+  const u = users[c.from] || { uid: c.from, name: c.fromName || 'Someone' }, g = c.group;
+  $('inAv').textContent = ''; $('inAv').append(g ? avatar({ uid: c.chatId, name: c.groupName || 'Group' }, 120) : avatar(u, 120));
+  $('inName').textContent = g ? (c.groupName || 'Group') : dn(u);
+  $('inType').textContent = g ? `${dn(u)} is calling the group · ${c.type === 'video' ? 'video' : 'voice'}…` : (c.type === 'video' ? 'Solarr video call…' : 'Solarr voice call…');
   $('incoming').hidden = false; Tone.start('in'); document.title = '📞 Incoming call — Solarr';
-  notify('Incoming ' + c.type + ' call', dn(u) + ' is calling you');
-  incoming.timer = setTimeout(() => { if (incoming && incoming.id === c.id) hideIncoming(); }, 45000);
+  notify('Incoming ' + c.type + ' call', (g ? (c.groupName || 'Group') + ': ' : '') + dn(u) + ' is calling');
+  incoming.timer = setTimeout(() => { if (incoming && incoming.id === c.id) { hideIncoming(); updateJoinBtn(); } }, RING_MS);
 }
 function hideIncoming() { if (!incoming) return; clearTimeout(incoming.timer); incoming = null; $('incoming').hidden = true; if (!call) Tone.stop(); document.title = 'Solarr'; }
-$('inDecline').onclick = async () => { if (!incoming) return; const c = incoming; hideIncoming(); Tone.stop(); try { await store.update('calls/' + c.id, { status: 'declined' }); } catch {} };
-$('inAccept').onclick = async () => {
-  if (!incoming) return; const c = incoming; hideIncoming(); Tone.stop();
-  call = { id: c.id, role: 'callee', type: c.type, peerUid: c.from, status: 'Connecting…', unsubs: [], pendingRemote: [], peerShare: false };
-  if (!users[c.from]) { try { const d = await store.get('users/' + c.from); if (d) users[c.from] = d; } catch {} }
-  showCallUI(); await openChat(c.from).catch(() => {});
-  const local = await getMedia(c.type === 'video'); if (!local) { try { await store.update('calls/' + c.id, { status: 'declined' }); } catch {} cleanupCall(); return; }
-  if (!call || call.id !== c.id) { local.getTracks().forEach(t => t.stop()); return; }
-  call.local = local; call.cam = local.getVideoTracks()[0] || null;
-  const pc = call.pc = makePC(); local.getTracks().forEach(t => pc.addTrack(t, local));
-  try {
-    await pc.setRemoteDescription(c.offer); flushRemote();
-    pc.getTransceivers().forEach(t => { if (t.receiver.track.kind === 'video') t.direction = 'sendrecv'; });
-    const sender = candSender(c.id, 'calleeCandidates'); pc.onicecandidate = e => e.candidate && sender.push(e.candidate.toJSON());
-    const ans = await pc.createAnswer(); await pc.setLocalDescription(ans);
-    await store.update('calls/' + c.id, { answer: { type: ans.type, sdp: ans.sdp }, status: 'accepted' });
-    sender.go(); watchCall(c.id); watchCands(c.id, 'callerCandidates'); updateCallUI();
-  } catch (e) { console.warn(e); toast('Couldn\'t connect the call.'); finishCall('ended'); }
-};
-function showCallUI() { const u = users[call.peerUid] || { name: '…' }; $('cAv').textContent = ''; $('cAv').append(avatar(u, 130)); $('cName').textContent = dn(u); $('callUI').hidden = false; $('galaxy').hidden = true; updateCallUI(); }
+$('inDecline').onclick = async () => { if (!incoming) return; const c = incoming; hideIncoming(); Tone.stop(); try { await store.set('calls/' + c.id, { declined: { [me.uid]: true } }, true); } catch {} };
+$('inAccept').onclick = () => { if (!incoming) return; const c = incoming; hideIncoming(); Tone.stop(); joinCall(c); };
+
+/* ---- call screen ---- */
+function showCallUI() { $('callUI').hidden = false; $('galaxy').hidden = true; call.avKey = null; updateCallUI(); }
 function updateCallUI() {
-  if (!call) return; const ui = $('callUI'), u = users[call.peerUid];
-  if (u && $('cName').textContent !== dn(u)) { $('cAv').textContent = ''; $('cAv').append(avatar(u, 130)); $('cName').textContent = dn(u); }
-  const vid = (call.type === 'video' || call.peerShare) && call.remote && call.remote.getVideoTracks().length > 0;
-  ui.classList.toggle('showv', !!vid); ui.classList.toggle('ring', !call.startedAt);
-  $('cStatus').textContent = call.reconnecting ? 'Reconnecting…' : call.startedAt ? fmtDur((Date.now() - call.startedAt) / 1000) : call.status;
+  if (!call) return; const ui = $('callUI'), pl = peerList(), peerU = call.group ? null : users[callPeerUid()];
+  const title = call.group ? (call.name || 'Group call') : (dn(peerU) || '…'), avKey = title + '|' + (peerU?.photo || '').length;
+  if (call.avKey !== avKey) { call.avKey = avKey; $('cAv').textContent = ''; $('cAv').append(call.group ? avatar({ uid: call.chatId, name: title }, 130) : avatar(peerU || { name: '…' }, 130)); $('cName').textContent = title; }
+  /* tiles for everyone else in the call */
+  const grid = $('grid'), sharing = call.doc?.sharing || {};
+  Object.keys(call.tiles).forEach(u => { if (!pl.includes(u)) { call.tiles[u].el.remove(); delete call.tiles[u]; } });
+  pl.forEach(u => {
+    let t = call.tiles[u];
+    if (!t) { const v = h('video', { autoplay: true, playsinline: true }), av = h('div', { class: 'tav' }), nm = h('div', { class: 'nm' }); t = call.tiles[u] = { el: h('div', { class: 'tile', 'data-u': u }, v, av, nm), v, av, nm, key: '' }; grid.append(t.el); }
+    const user = users[u] || { uid: u, name: '…' }, key = dn(user) + '|' + (user.photo || '').length, p = call.peers[u];
+    t.nm.textContent = dn(user) || '…'; if (t.key !== key) { t.key = key; t.av.textContent = ''; t.av.append(avatar(user, 96)); }
+    if (p?.stream && t.v.srcObject !== p.stream) { t.v.srcObject = p.stream; t.v.play?.().catch(() => {}); }
+    const hasV = !!p?.stream && p.stream.getVideoTracks().length > 0 && (call.type === 'video' || !!sharing[u]);
+    t.el.classList.toggle('hasv', hasV); t.el.classList.toggle('shr', !!sharing[u]);
+  });
+  const cols = pl.length <= 1 ? 1 : pl.length <= 4 ? 2 : 3; grid.style.gridTemplateColumns = `repeat(${(pl.length === 2 && innerWidth < innerHeight) ? 1 : cols},minmax(0,1fr))`;
+  const showGrid = pl.length >= 2 || pl.some(u => call.tiles[u]?.el.classList.contains('hasv'));
+  ui.classList.toggle('showv', showGrid); ui.classList.toggle('ring', !call.startedAt);
+  const recon = Object.values(call.peers).some(p => p.reconnecting);
+  $('cStatus').textContent = recon ? 'Reconnecting…' : call.startedAt ? (call.group && !pl.length ? 'Waiting for others…' : fmtDur((Date.now() - call.startedAt) / 1000) + (call.group ? ` · ${pl.length + 1} in call` : '')) : call.status;
   const lv = $('localV'), src = call.screen || (call.cam ? call.local : null);
   lv.hidden = !src; if (src && lv.srcObject !== src) lv.srcObject = src; lv.classList.toggle('scr', !!call.screen);
   const mute = !!call.muted; $('cMute').classList.toggle('on', mute); $('cMute').querySelector('.ic').innerHTML = svg(mute ? 'micoff' : 'mic');
@@ -1335,39 +1622,44 @@ function updateCallUI() {
 }
 $('cMute').onclick = () => { if (!call?.local) return; call.muted = !call.muted; call.local.getAudioTracks().forEach(t => t.enabled = !call.muted); updateCallUI(); };
 $('cCam').onclick = () => { if (!call?.cam) return; call.camOff = !call.camOff; call.cam.enabled = !call.camOff; updateCallUI(); };
-$('cEnd').onclick = () => finishCall(call && call.startedAt ? 'ended' : 'missed');
-const videoSender = () => call.pc.getTransceivers().find(t => t.receiver.track.kind === 'video')?.sender;
+$('cEnd').onclick = () => leaveCall(call && (call.startedAt || peerList().length) ? 'ended' : 'missed');
+const videoSenders = () => Object.values(call.peers).map(p => p.pc?.getTransceivers().find(t => t.receiver.track.kind === 'video')?.sender).filter(Boolean);
 async function setSharing(on) { try { await store.set('calls/' + call.id, { sharing: { [me.uid]: on } }, true); } catch {} }
 $('cShare').onclick = async () => {
-  if (!call || !call.pc) return; if (call.screen) { stopShare(); return; }
+  if (!call || !call.joined) return; if (call.screen) { stopShare(); return; }
   let s; try { s = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }); } catch { return; }
-  const track = s.getVideoTracks()[0], sd = videoSender(); if (!sd) { s.getTracks().forEach(t => t.stop()); toast('Screen sharing isn\'t available in this call.'); return; }
-  await sd.replaceTrack(track); call.screen = s; track.onended = stopShare; await setSharing(true); updateCallUI();
+  const track = s.getVideoTracks()[0], sds = videoSenders(); if (!sds.length) { s.getTracks().forEach(t => t.stop()); toast('Wait until someone has joined, then share.'); return; }
+  await Promise.all(sds.map(sd => sd.replaceTrack(track).catch(() => {}))); call.screen = s; track.onended = stopShare; await setSharing(true); updateCallUI();
 };
 async function stopShare() {
   if (!call?.screen) return; const s = call.screen; call.screen = null; s.getTracks().forEach(t => { t.onended = null; t.stop(); });
-  try { await videoSender()?.replaceTrack(call.cam && !call.camOff ? call.cam : call.cam || null); } catch {} await setSharing(false); updateCallUI();
+  try { await Promise.all(videoSenders().map(sd => sd.replaceTrack(call.cam || null).catch(() => {}))); } catch {} await setSharing(false); updateCallUI();
 }
-async function finishCall(status, fromRemote) {
+/* leave the call. The last person out ends it, and someone posts the call log to the chat */
+async function leaveCall(reason, fromRemote) {
   if (!call || call.finished) return; call.finished = true; const c = call; Tone.stop();
-  const dur = c.startedAt ? (Date.now() - c.startedAt) / 1000 : 0;
-  if (!fromRemote) { try { await store.update('calls/' + c.id, { status }); } catch {} }
-  if (c.role === 'caller') {
-    const id = chatIdOf(me.uid, c.peerUid), ts = Date.now(), st = status === 'ended' && !c.startedAt ? 'missed' : status;
-    const m = { from: me.uid, ts, type: 'call', callType: c.type, status: st, duration: Math.round(dur) };
-    try { await store.set('chats/' + id, { members: [me.uid, c.peerUid].sort(), lastMsg: { from: me.uid, ts, text: preview(m) }, unread: { [c.peerUid]: store.inc(1) } }, true); await store.add(`chats/${id}/messages`, m); } catch {}
+  const d = c.doc || {}, others = partOf(d).filter(u => u !== me.uid), last = !others.length;
+  const connected = !!(c.startedAt || d.connectedAt), dur = connected ? (Date.now() - (c.startedAt || d.connectedAt)) / 1000 : 0;
+  if (c.joined) { try { await store.set('calls/' + c.id, { participants: { [me.uid]: null }, ...(last ? { status: 'ended' } : {}) }, true); } catch {} }
+  const oneToOne = !c.group, poster = c.joined && (oneToOne ? c.role === 'caller' : last);
+  if (poster) {
+    const st = connected ? 'ended' : (reason === 'declined' || reason === 'busy') ? reason : 'missed', ts = Date.now();
+    const m = { from: c.callerUid || me.uid, ts, type: 'call', callType: c.type, status: st, duration: Math.round(dur) }, un = {}; c.members.forEach(u => { if (u !== me.uid) un[u] = store.inc(1); });
+    try { await store.set('chats/' + c.chatId, { ...(c.group ? {} : { members: c.members }), lastMsg: { from: m.from, ts, text: preview(m), readAt: null, deleted: false }, unread: un }, true); await store.add(`chats/${c.chatId}/messages`, m); } catch {}
   }
-  if (fromRemote && status === 'declined') toast('Call declined'); else if (fromRemote && status === 'busy') toast('They\'re on another call');
+  if (last && c.joined) setTimeout(() => store.remove('calls/' + c.id).catch(() => {}), 8000);
+  if (fromRemote && reason === 'declined') toast('Call declined'); else if (fromRemote && reason === 'busy') toast('They\'re on another call');
   cleanupCall();
 }
 function cleanupCall() {
   const c = call; call = null; if (!c) return; clearInterval(c.timer); clearTimeout(c.ringTimer); Tone.stop();
   c.unsubs.forEach(f => { try { f(); } catch {} }); c.local?.getTracks().forEach(t => t.stop()); c.screen?.getTracks().forEach(t => t.stop());
-  try { c.pc?.close(); } catch {} $('remoteV').srcObject = null; $('localV').srcObject = null; $('callUI').hidden = true; $('callUI').classList.remove('showv', 'ring'); if (me) $('galaxy').hidden = false;
+  Object.values(c.peers).forEach(p => { try { p.pc?.close(); } catch {} });
+  $('grid').textContent = ''; $('localV').srcObject = null; $('callUI').hidden = true; $('callUI').classList.remove('showv', 'ring'); if (me) $('galaxy').hidden = false; updateJoinBtn();
 }
-$('btnCall').onclick = () => active && startCall(active.other, 'audio');
-$('btnVideo').onclick = () => active && startCall(active.other, 'video');
-window.addEventListener('beforeunload', () => { if (call && !call.finished) { try { store.update('calls/' + call.id, { status: call.startedAt ? 'ended' : 'missed' }); } catch {} } });
+$('btnCall').onclick = () => callActive('audio');
+$('btnVideo').onclick = () => callActive('video');
+window.addEventListener('beforeunload', () => { if (call && call.joined && !call.finished) { try { store.set('calls/' + call.id, { participants: { [me.uid]: null }, ...(peerList().length ? {} : { status: 'ended' }) }, true); } catch {} } });
 
 /* =====================================================================
    SOLARR AI (galaxy) — local commands, optional Claude via your own key
@@ -1398,8 +1690,8 @@ function aiLocal(t) {
   }
   if ((m = t.match(/^(?:open|chat with|message|talk to|go to)\s+(?:chat\s+with\s+)?@?([\w ]+)$/i))) { const u = findPerson(m[1]); if (!u) return `I couldn't find "${m[1].trim()}".`; openChat(u.uid); return `Opened your chat with ${dn(u)} 💬`; }
   if (/unread|what did i miss|missed|catch me up|new messages/.test(s)) {
-    const l = chats.filter(c => (c.unread?.[me.uid] || 0) > 0 && users[otherOf(c)]);
-    return l.length ? 'Unread:\n' + l.map(c => `• ${nameOf(otherOf(c))} (${c.unread[me.uid]}): "${(c.lastMsg?.text || '').slice(0, 50)}"`).join('\n') : 'You\'re all caught up ✨';
+    const l = chats.filter(c => (c.unread?.[me.uid] || 0) > 0 && (isG(c) || users[otherOf(c)]));
+    return l.length ? 'Unread:\n' + l.map(c => `• ${chatTitle(c)} (${c.unread[me.uid]}): "${(c.lastMsg?.text || '').slice(0, 50)}"`).join('\n') : 'You\'re all caught up ✨';
   }
   if (/who'?s online|who is online|online now/.test(s)) { const l = Object.values(users).filter(u => u.uid !== me.uid && isOnline(u)); return l.length ? 'Online now:\n' + l.map(u => '• ' + dn(u)).join('\n') : 'Nobody else is online right now.'; }
   if (/dark mode|night mode|dark theme/.test(s)) { P.set('theme', 'dark'); applyTheme(); return 'Dark mode on 🌙'; }
@@ -1446,7 +1738,7 @@ $('aiRemove').onclick = () => { P.set('ai', { key: '', model: $('aiModelIn').val
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAll(); closeMsgMenu(); $('emoji').hidden = true; if (!call) $('aiPanel').hidden = true; } });
 
 /* ---------------- boot ---------------- */
-window.__solarr = { tone: () => Tone.active(), call: () => call && { role: call.role, type: call.type, state: call.pc?.connectionState, started: !!call.startedAt, share: !!call.screen, peerShare: call.peerShare } };
+window.__solarr = { tone: () => Tone.active(), live: () => Object.fromEntries(Object.entries(liveCalls).map(([k, c]) => [k, { st: c.status, part: partOf(c), ts: c.ts }])), inc: () => !!incoming, active: () => active && active.id, call: () => call && { role: call.role, type: call.type, group: call.group, peers: Object.values(call.peers).map(p => p.pc?.connectionState || 'new'), present: peerList().length, started: !!call.startedAt, share: !!call.screen, peerShare: Object.entries(call.doc?.sharing || {}).some(([u, v]) => v && u !== me.uid), tiles: Object.keys(call.tiles).length, videoTiles: document.querySelectorAll('.tile.hasv').length } };
 (async () => {
   try {
     const be = CLOUD ? await makeFirebaseBackend() : makeLocalBackend(); store = be.store; auth = be.auth;
