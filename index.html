@@ -355,6 +355,60 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);
 .aif{display:flex;gap:8px;padding:8px 10px;background:var(--hdr);align-items:center}
 .aif input{border:0;border-radius:20px;padding:9px 14px}
 
+/* ===== modern rounded messaging ===== */
+.b{padding:9px 13px 9px 14px;border-radius:20px 20px 20px 6px;box-shadow:0 1px 2px rgba(20,60,110,.10),0 2px 8px rgba(20,60,110,.05);line-height:20px;font-size:15px}
+.out .b{border-radius:20px 20px 6px 20px}
+.out:not(.first) .b{border-top-right-radius:8px}.in:not(.first) .b{border-top-left-radius:8px}
+.out.first .b::after,.in.first .b::after{display:none}
+.out.first .b{border-top-right-radius:20px}.in.first .b{border-top-left-radius:20px}
+.out .b{background:linear-gradient(135deg,#43a0f7,#1f7fe6);color:#fff;--bgc:#2a88ee}
+.in .b{background:var(--in)}
+.out .b .mt,.out .b .snd+.mt{color:rgba(255,255,255,.78)}.out .tk{color:rgba(255,255,255,.78)}.out .tk.rd{color:#c9f2ff}
+.out .b a{color:#fff;text-decoration:underline}
+.out .b .q{background:rgba(255,255,255,.18);border-left-color:#fff}.out .b .q b{color:#fff}.out .b .q span{color:rgba(255,255,255,.85)}
+.out .b .fwd{color:rgba(255,255,255,.8)}
+.out .b .call .ci{background:rgba(255,255,255,.2);color:#fff}.out .b .call small{color:rgba(255,255,255,.8)}
+.out .b.del{color:rgba(255,255,255,.85)}
+.out .b.jumbo,.out .b.jumbo .mt{color:var(--text)}.out .b.jumbo{background:transparent!important}
+.b.jumbo{border-radius:0}
+.b img.pic{border-radius:14px;margin:-4px -6px 4px -7px;max-width:calc(100% + 13px)}
+.b .chev{border-radius:50%}
+.rc{border-radius:14px;padding:2px 8px}
+.dsep,.usep,.syspill{border-radius:14px;padding:5px 14px;font-weight:500}
+.mrow.first{margin-top:14px}
+.comp{margin:0 12px 12px;border-radius:30px;background:var(--panel);box-shadow:0 6px 28px rgba(31,127,230,.16),0 1px 3px rgba(20,60,110,.1);border:1px solid var(--line);padding:6px 8px;min-height:56px;align-items:center;transition:box-shadow .25s,border-color .25s}
+.comp:focus-within{border-color:rgba(31,127,230,.45);box-shadow:0 8px 32px rgba(31,127,230,.24)}
+.comp .ib{margin:0;width:42px;height:42px}
+.comp textarea{background:transparent!important;border:0!important;box-shadow:none!important;padding:11px 6px}
+#sendBtn{background:linear-gradient(135deg,#43a0f7,#1f7fe6);color:#fff!important;border-radius:50%;box-shadow:0 4px 14px rgba(31,127,230,.4)}
+#sendBtn:not([hidden]){animation:badgePop .3s cubic-bezier(.2,.9,.3,1.6)}
+#sendBtn:hover{transform:scale(1.08)!important}
+#recBar{margin:0 12px 12px}
+#toBottom{bottom:96px}
+#emoji,#gifPop{bottom:82px;left:12px;border-radius:22px;box-shadow:0 12px 44px rgba(20,60,110,.28)}
+#replybar{background:transparent;padding:0 16px}
+#replybar .in2{border-radius:16px;background:var(--panel);box-shadow:0 2px 10px rgba(20,60,110,.1)}
+.sbox{border-radius:22px;height:42px;padding:0 16px}
+.sbar{padding:8px 12px}
+.item{margin:2px 8px;border-radius:18px;height:70px;padding:0 12px;gap:13px}
+.item .t{border-bottom:0}
+.item:hover{background:var(--hover)}.item.on{background:var(--sel);box-shadow:inset 0 0 0 1px var(--ring)}
+.item .n{font-size:16.5px;font-weight:500}
+.badge{box-shadow:0 2px 8px rgba(47,160,255,.45)}
+.avw{position:relative;flex-shrink:0;display:grid}
+.avw .on-dot{position:absolute;right:0;bottom:1px;width:13px;height:13px;border-radius:50%;background:#22c55e;border:2.5px solid var(--panel);animation:badgePop .35s}
+.item.on .avw .on-dot,.item:hover .avw .on-dot{border-color:var(--sel)}
+.chead{box-shadow:0 1px 0 var(--line),0 6px 20px rgba(31,127,230,.06);position:relative;z-index:2}
+.sheet{border-radius:26px}.sheet .sh{border-radius:26px 26px 0 0}
+.menu,.mmenu{border-radius:16px!important;box-shadow:0 10px 40px rgba(20,60,110,.25)!important;padding:8px!important;overflow:hidden}
+.menu button,.mmenu button{border-radius:10px}
+.mmenu .qr{border-radius:10px}
+.pop{border-radius:22px}
+.toast{border-radius:22px;padding:11px 20px}
+.q{border-radius:10px}
+.sheet input[type=text],.sheet input[type=password],.sheet textarea{border-radius:14px}
+.fl input{border-radius:14px}
+
 /* ===== smooth motion everywhere ===== */
 button,.item,.ib,.btn,.prow,.found,.menu button,.tabs button,.swatch{transition:background-color .2s,color .2s,transform .18s cubic-bezier(.2,.9,.3,1.25),box-shadow .25s,opacity .2s,filter .2s}
 button:active:not(:disabled),.btn:active:not(:disabled),.ib:active{transform:scale(.93)}
@@ -652,7 +706,7 @@ const ICE_SERVERS = [
   { urls: 'stun:stun1.l.google.com:19302' }
 ];
 // GIFs: free key from https://developers.giphy.com (create an app, choose API). Leave empty and the GIF picker explains how to add one.
-const GIPHY_API_KEY = '';
+const GIPHY_API_KEY = 'cynpJbogJJqN6nE2F8RrQBugoGWcRCFj';
 const CLOUD = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
 
 /* ---------------- utils ---------------- */
@@ -1135,7 +1189,7 @@ function renderList() {
       p.append(h('span', { style: 'overflow:hidden;text-overflow:ellipsis', text: pre + (lm.text || '') }));
     } else p.textContent = g ? c.members.map(x => x === me.uid ? 'You' : nameOf(x) || '…').join(', ') : (u.about || '');
     box.append(h('div', { class: 'item' + (active && active.id === c.id ? ' on' : ''), onclick: () => openChatId(c.id) },
-      chatAv(c, 49), h('div', { class: 't' },
+      h('div', { class: 'avw' }, chatAv(c, 49), (!g && isOnline(u)) ? h('i', { class: 'on-dot' }) : null), h('div', { class: 't' },
         h('div', { class: 'r1' }, h('div', { class: 'n', text: chatTitle(c) }), lm ? h('div', { class: 'tm' + (un ? ' u' : ''), text: listTime(lm.ts) }) : null),
         h('div', { class: 'r2' }, p, un ? h('div', { class: 'badge', text: un > 99 ? '99+' : un }) : null))));
   });
